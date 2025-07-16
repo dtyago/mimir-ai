@@ -17,8 +17,8 @@ from langchain.text_splitter import CharacterTextSplitter
 # Import vector store for database operations
 from langchain_community.vectorstores import Chroma
 
-# for loading of llama gguf model
-from langchain_community.llms import LlamaCpp
+# Import Azure OpenAI for LLM functionality
+from langchain_openai import AzureChatOpenAI
 
 from langchain.chains.router.llm_router import LLMRouterChain, RouterOutputParser
 from langchain.chains.router.multi_prompt_prompt import MULTI_PROMPT_ROUTER_TEMPLATE
@@ -29,10 +29,6 @@ from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory, VectorStoreRetrieverMemory
 from langchain.chains import ConversationalRetrievalChain
-
-
-from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 # Configure basic logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -102,35 +98,44 @@ def pdf_to_vec(filename, user_collection_name):
     #return collection  # Return the collection as the asset
 
 
-# Assuming LlamaModelSingleton is updated to support async instantiation
-class LlamaModelSingleton:
+# Assuming AzureOpenAIModelSingleton is updated to support async instantiation
+class AzureOpenAIModelSingleton:
     _instance = None
 
     @classmethod
     async def get_instance(cls):
         if cls._instance is None:
-            cls._instance = cls._load_llm()  # Assuming _load_llm is synchronous, if not, use an executor
+            cls._instance = cls._load_llm()  # Load Azure OpenAI model
         return cls._instance
 
     @staticmethod
     def _load_llm():
-        print('Loading LLM model...')
-        model_path = os.getenv("MODEL_PATH")
-        llm = LlamaCpp(
-            model_path=model_path,
-            n_gpu_layers=-1,
-            n_batch=512,
+        print('Loading Azure OpenAI model...')
+        
+        # Get Azure OpenAI configuration from environment variables
+        azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4")
+        
+        if not azure_endpoint or not api_key:
+            raise ValueError("Azure OpenAI endpoint and API key must be set in environment variables")
+        
+        llm = AzureChatOpenAI(
+            azure_endpoint=azure_endpoint,
+            api_key=api_key,
+            api_version=api_version,
+            deployment_name=deployment_name,
             temperature=0.1,
-            top_p=1,
             max_tokens=2000,
         )
-        print(f'Model loaded from {model_path}')
+        print(f'Azure OpenAI model loaded with deployment: {deployment_name}')
         return llm
 
 async def load_llm():
-    return await LlamaModelSingleton.get_instance()
+    return await AzureOpenAIModelSingleton.get_instance()
 
-class LlamaModelSingleton:
+class AzureOpenAIModelSingleton:
     _instance = None
     _metadata = None  # Store metadata alongside the instance for easy access
 
@@ -142,42 +147,52 @@ class LlamaModelSingleton:
 
     @staticmethod
     async def _load_llm():
-        print('Loading LLM model...')
-        model_path = os.getenv("MODEL_PATH")
+        print('Loading Azure OpenAI model...')
+        
+        # Get Azure OpenAI configuration from environment variables
+        azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4")
+        
+        if not azure_endpoint or not api_key:
+            raise ValueError("Azure OpenAI endpoint and API key must be set in environment variables")
+        
         try:
-            llm = LlamaCpp(
-                model_path=model_path,
-                n_gpu_layers=-1,
-                n_batch=512,
+            llm = AzureChatOpenAI(
+                azure_endpoint=azure_endpoint,
+                api_key=api_key,
+                api_version=api_version,
+                deployment_name=deployment_name,
                 temperature=0.1,
-                top_p=1,
                 max_tokens=2000,
             )
-            # Here, simulate extracting or setting metadata
-            # In a real scenario, this could involve inspecting the loaded model object, reading configuration files, etc.
+            
+            # Metadata for Azure OpenAI
             metadata = {
-                'llama.context_length': 2048,  
-                'tokenizer.ggml.eos_token_id': 2,  
-                'tokenizer.ggml.bos_token_id': 1,  
-                # Add other necessary metadata fields here
+                'model.context_length': 4096,  # Default context length for GPT-4
+                'model.deployment_name': deployment_name,
+                'model.api_version': api_version,
+                'model.temperature': 0.1,
+                'model.max_tokens': 2000,
             }
-            print(f'Model loaded from {model_path}')
+            print(f'Azure OpenAI model loaded with deployment: {deployment_name}')
             return llm, metadata
         except Exception as e:
-            logging.error(f'Failed to load model from {model_path}: {e}')
+            logging.error(f'Failed to load Azure OpenAI model: {e}')
             raise
 
 class EnhancedConversationalChain:
     _instance = None
     _lock = asyncio.Lock()
 
-    def __init__(self, llm, retriever, context_length, eos_token_id, bos_token_id):
-        # Assuming the base ConversationalRetrievalChain or similar requires these parameters
+    def __init__(self, llm, retriever, context_length, deployment_name, api_version):
+        # Initialize with Azure OpenAI specific parameters
         self.llm = llm
         self.retriever = retriever
         self.context_length = context_length
-        self.eos_token_id = eos_token_id
-        self.bos_token_id = bos_token_id
+        self.deployment_name = deployment_name
+        self.api_version = api_version
         # Additional initialization based on metadata...
 
     @classmethod
@@ -185,15 +200,15 @@ class EnhancedConversationalChain:
         async with cls._lock:
             if cls._instance is None:
                 # Load the model and retrieve necessary metadata for initialization
-                llm, model_metadata = await LlamaModelSingleton.get_instance()
+                llm, model_metadata = await AzureOpenAIModelSingleton.get_instance()
                 logging.info(f"Loaded model metadata keys: {list(model_metadata.keys())}")
                 # Extract needed parameters from metadata
-                context_length = model_metadata['llama.context_length']
-                eos_token_id = model_metadata['tokenizer.ggml.eos_token_id']
-                bos_token_id = model_metadata['tokenizer.ggml.bos_token_id']
+                context_length = model_metadata['model.context_length']
+                deployment_name = model_metadata['model.deployment_name']
+                api_version = model_metadata['model.api_version']
 
                 retriever = None  # Initialize retriever based on application logic
-                cls._instance = cls(llm, retriever, context_length, eos_token_id, bos_token_id)
+                cls._instance = cls(llm, retriever, context_length, deployment_name, api_version)
             return cls._instance
 
     async def run(self, input_text, user_collection_name):

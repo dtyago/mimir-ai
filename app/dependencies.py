@@ -1,17 +1,55 @@
 import os
 import chromadb
 
-from fastapi import FastAPI, Request, Form, File, UploadFile
+from fastapi import FastAPI, Request, Form, File, UploadFile, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from admin import admin_functions as admin
-from utils.db import UserFaceEmbeddingFunction,ChromaDBFaceHelper
+from utils.db import UserFaceEmbeddingFunction,ChromaDBFaceHelper, tinydb_helper
+from utils.jwt_utils import decode_jwt
 from api import userlogin, userlogout, userchat, userupload
 from utils.db import ChromaDBFaceHelper
-from utils.chat_rag import LlamaModelSingleton
+from utils.chat_rag import AzureOpenAIModelSingleton
+
+# Initialize OAuth2 scheme
+oauth2_scheme = HTTPBearer()
+
+# Dependency function to get current user from JWT token
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+    try:
+        token = credentials.credentials
+        payload = decode_jwt(token)
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Check if token is valid in TinyDB
+        if not tinydb_helper.query_token(user_id, token):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired or invalid",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return {
+            "user_id": user_id,
+            "name": payload.get("name"),
+            "role": payload.get("role")
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 app = FastAPI()
 
@@ -42,11 +80,12 @@ async def startup_event():
     chromadb_face_helper = ChromaDBFaceHelper(db_path) # Used by APIs
     
     # Perform any other startup tasks here
-    # Preload the LLM model
-    await LlamaModelSingleton.get_instance()
-    print("LLM model loaded and ready.")
+    # Preload the Azure OpenAI model
+    await AzureOpenAIModelSingleton.get_instance()
+    print("Azure OpenAI model loaded and ready.")
 
-    print(f"MODEL_PATH in main.py = {os.getenv('MODEL_PATH')} ")
+    print(f"Azure OpenAI Endpoint: {os.getenv('AZURE_OPENAI_ENDPOINT')}")
+    print(f"Azure OpenAI Deployment: {os.getenv('AZURE_OPENAI_DEPLOYMENT_NAME')}")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")

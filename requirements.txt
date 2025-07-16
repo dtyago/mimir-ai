@@ -1,22 +1,22 @@
 fastapi                             # Core framework for building APIs.
 uvicorn[standard]                   # ASGI server for FastAPI, supports live reloading.
 requests                            # For making HTTP requests, if needed by our app.
-torch                               # PyTorch, for handling deep learning models.
-sentencepiece                       # For chat text processing
 mtcnn                               # For face detection in images.
 python-jose[cryptography]           # For creating, parsing, and verifying JWT tokens.
 python-multipart                    # Necessary for form data handling, including file uploads.
 numpy                               # Updated to resolve conflict
 chromadb                            # Vector database interaction libraries.
 keras-facenet                       # For face recognition and embedding, used alongside MTCNN.
-jinja2                              # For Admin site redndering
+jinja2                              # For Admin site rendering
 bcrypt                              # For hashing secrets
 opencv-python-headless              # For image handling images
 tensorflow                          # Tensorflow is needed by MTCNN for facial recognition
 scipy                               # The scipy is required for keras-facenet
 tinydb                              # The in memory database for storing JWT tokens
-langchain                           # Langgchain for RAG
+langchain                           # Langchain for RAG
+langchain-openai                    # OpenAI integration for langchain
 sentence-transformers               # For text embeddings
 pypdf                               # Handling PDF files 
-langchain-community                 # Latest library to prevent dprecated warnings
+langchain-community                 # Latest library to prevent deprecated warnings
 pretty_errors                       # Print errors prettier
+openai                              # Azure OpenAI client library
