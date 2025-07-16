@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration Success</title>
+    <link href="/static/css/mvp.css" rel="stylesheet" media="screen">
+</head>
+<body>
+    <h1>Registration Successful!</h1>
+    <div>
+        <h2>Disk Usage:</h2>
+        <p>Total: {{ "%.2f"|format(disk_usage.total) }} MB</p>
+        <p>Used: {{ "%.2f"|format(disk_usage.used) }} MB</p>
+        <p>Free: {{ "%.2f"|format(disk_usage.free) }} MB</p>
+    </div>
+</body>
+</html>
