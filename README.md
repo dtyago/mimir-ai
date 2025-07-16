@@ -11,7 +11,7 @@ license: MIT License
 
 
 ```
-**EduConnect/
+**MIMIR-API/
 ├── app/
 │   ├── __init__.py                  # Initializes the FastAPI app and global configurations
 │   ├── main.py                      # Entry point for the FastAPI application, defining routes
