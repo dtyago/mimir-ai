@@ -4,6 +4,7 @@ requests                            # For making HTTP requests, if needed by our
 mtcnn                               # For face detection in images.
 python-jose[cryptography]           # For creating, parsing, and verifying JWT tokens.
 python-multipart                    # Necessary for form data handling, including file uploads.
+python-dotenv                       # For loading environment variables from .env file
 numpy                               # Updated to resolve conflict
 chromadb                            # Vector database interaction libraries.
 keras-facenet                       # For face recognition and embedding, used alongside MTCNN.
