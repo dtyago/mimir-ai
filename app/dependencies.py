@@ -1,5 +1,6 @@
 import os
 import chromadb
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -100,6 +101,17 @@ templates = Jinja2Templates(directory="admin/templates")
 @app.get("/")
 async def get_admin_login(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring and load balancers"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.0.0",
+        "azure_openai_configured": bool(os.getenv("AZURE_OPENAI_ENDPOINT")),
+        "chromadb_configured": bool(os.getenv("CHROMADB_LOC"))
+    }
 
 # Admin Login Handler
 @app.post("/admin/login", response_class=HTMLResponse)

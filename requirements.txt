@@ -1,10 +1,13 @@
 fastapi                             # Core framework for building APIs.
 uvicorn[standard]                   # ASGI server for FastAPI, supports live reloading.
+gunicorn                            # WSGI server for production deployments.
 requests                            # For making HTTP requests, if needed by our app.
 mtcnn                               # For face detection in images.
 python-jose[cryptography]           # For creating, parsing, and verifying JWT tokens.
 python-multipart                    # Necessary for form data handling, including file uploads.
 python-dotenv                       # For loading environment variables from .env file
+azure-identity                      # Azure identity library for managed identity support
+azure-keyvault-secrets              # Azure Key Vault integration for secure secrets
 numpy                               # Updated to resolve conflict
 chromadb                            # Vector database interaction libraries.
 keras-facenet                       # For face recognition and embedding, used alongside MTCNN.
