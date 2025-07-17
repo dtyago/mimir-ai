@@ -136,6 +136,9 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
+.env.production
+.env.dev
 .envrc
 .venv
 env/
@@ -205,3 +208,42 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Mimir API specific files
+# ======================
+
+# Application data
+data/
+logs/
+tmp/
+
+# Uploaded files  
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.pdf
+
+# Model files
+*.gguf
+*.bin
+*.safetensors
+models/
+
+# Database files
+*.db
+*.sqlite
+chromadb/
+
+# Deployment packages
+*.zip
+mimir-api-deploy.zip
+
+# Azure specific
+.azure/
+
+# Temporary files
+*~
+*.swp
+*.swo
+.tmp/

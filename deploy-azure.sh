@@ -66,17 +66,16 @@ az webapp config set \
 # Set application settings from .env.azure
 echo "🔧 Setting application settings..."
 if [ -f ".env.azure" ]; then
-    echo "Loading settings from .env.azure..."
+    echo "⚠️  .env.azure contains template values. Please update with actual values."
+    echo "You can set environment variables manually or use azure-config.sh"
     
-    # Read Azure OpenAI settings
-    AZURE_OPENAI_ENDPOINT=$(grep "AZURE_OPENAI_ENDPOINT" .env.azure | cut -d'=' -f2)
-    AZURE_OPENAI_API_KEY=$(grep "AZURE_OPENAI_API_KEY" .env.azure | cut -d'=' -f2)
-    AZURE_OPENAI_API_VERSION=$(grep "AZURE_OPENAI_API_VERSION" .env.azure | cut -d'=' -f2)
-    AZURE_OPENAI_DEPLOYMENT_NAME=$(grep "AZURE_OPENAI_DEPLOYMENT_NAME" .env.azure | cut -d'=' -f2)
-    
-    # Read security settings
-    EC_ADMIN_PWD=$(grep "EC_ADMIN_PWD" .env.azure | cut -d'=' -f2)
-    JWT_SECRET_KEY=$(grep "JWT_SECRET_KEY" .env.azure | cut -d'=' -f2)
+    # Prompt for actual values instead of reading from file
+    echo "Setting up Azure OpenAI configuration..."
+    read -p "Enter your Azure OpenAI Endpoint: " AZURE_OPENAI_ENDPOINT
+    read -p "Enter your Azure OpenAI API Key: " AZURE_OPENAI_API_KEY
+    read -p "Enter your Azure OpenAI Deployment Name: " AZURE_OPENAI_DEPLOYMENT_NAME
+    read -p "Enter your hashed admin password: " EC_ADMIN_PWD
+    read -p "Enter your JWT secret key: " JWT_SECRET_KEY
     
     # Set application settings
     az webapp config appsettings set \
@@ -85,7 +84,7 @@ if [ -f ".env.azure" ]; then
         --settings \
         AZURE_OPENAI_ENDPOINT="$AZURE_OPENAI_ENDPOINT" \
         AZURE_OPENAI_API_KEY="$AZURE_OPENAI_API_KEY" \
-        AZURE_OPENAI_API_VERSION="$AZURE_OPENAI_API_VERSION" \
+        AZURE_OPENAI_API_VERSION="2024-12-01-preview" \
         AZURE_OPENAI_DEPLOYMENT_NAME="$AZURE_OPENAI_DEPLOYMENT_NAME" \
         CHROMADB_LOC="/tmp/chromadb" \
         EC_ADMIN_PWD="$EC_ADMIN_PWD" \
