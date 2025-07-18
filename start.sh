@@ -13,6 +13,20 @@ if [ -n "$CODESPACES" ]; then
     exit 1
 elif [ -n "$DEVCONTAINER" ] || [ -f "/.devcontainer-indicator" ]; then
     DETECTED_ENV="devcontainer"
+elif [ "$(whoami)" = "vscode" ] && [ -f "/.dockerenv" ] && [ "$(pwd)" = "/workspaces/mimir-api" ]; then
+    echo "❌ ERROR: Wrong DevContainer detected!"
+    echo "   You're running in a generic VS Code container, not the project's custom container."
+    echo "   This container has SQLite $(python3 -c 'import sqlite3; print(sqlite3.sqlite_version)') but ChromaDB requires 3.35.0+"
+    echo ""
+    echo "🔧 To fix this:"
+    echo "   1. Close VS Code"
+    echo "   2. Delete the current container: docker container prune"
+    echo "   3. Reopen the project in VS Code"
+    echo "   4. Select 'Reopen in Container' to rebuild with the correct Dockerfile"
+    echo ""
+    echo "   Alternative: Use Docker Compose instead:"
+    echo "   docker-compose up --build"
+    exit 1
 elif [ -n "$WEBSITE_SITE_NAME" ] || [ -n "$APPSETTING_WEBSITE_SITE_NAME" ]; then
     DETECTED_ENV="azure"
 elif [ "$APP_ENV" = "production" ]; then

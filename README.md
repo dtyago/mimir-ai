@@ -338,6 +338,8 @@ The best way to get started is using VS Code with DevContainer **on your local m
 - ✅ Consistent development environment
 - ✅ No system-level SQLite conflicts
 
+⚠️ **Important:** If you get "Wrong DevContainer detected" error, you're in a generic container. Close VS Code, run `docker container prune`, then reopen and select "Reopen in Container" to rebuild with the correct Dockerfile.
+
 🚫 **Do NOT use GitHub Codespaces** - it has SQLite 3.34.1 which is incompatible with ChromaDB requirements.
 
 ### Option 2: Docker Compose
