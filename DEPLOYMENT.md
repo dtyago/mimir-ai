@@ -24,7 +24,7 @@ The project now uses a single universal startup script that automatically detect
 # In VS Code DevContainer (auto-detected)
 ./start.sh
 ```
-**Note:** GitHub Codespaces is not supported due to SQLite version limitations.
+⚠️ **Important:** Use local DevContainer only. **GitHub Codespaces is NOT supported** due to incompatible SQLite version (3.34.1 vs required 3.35.0+).
 
 #### Option 2: Docker Compose
 ```bash

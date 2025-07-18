@@ -57,22 +57,21 @@
 
 ## File Changes Summary
 
-### New Files Created:
-- `app/utils/sqlite_compat.py` - SQLite compatibility module
-- `test_chromadb.py` - ChromaDB testing script
-- `test_chromadb_patch.py` - SQLite patching test script
-
 ### Files Modified:
 - `requirements.txt` - Complete rewrite with proper versioning
 - `.devcontainer/devcontainer.json` - Updated to use Dockerfile
 - `Dockerfile` - Major improvements for dependency handling
-- `start-devcontainer.sh` - Enhanced for DevContainer environment
-- `start-dev.sh` - Improved for local development
-- `start-prod.sh` - Enhanced for production deployment
+- `start.sh` - Universal startup script with environment auto-detection
 - `startup.sh` - Improved for Azure App Service
 - `startup.py` - Added SQLite compatibility setup
 - `app/dependencies.py` - Added SQLite compatibility import
 - `app/utils/db.py` - Added SQLite compatibility import
+- `README.md` - Enhanced with clear Codespaces warnings and local setup instructions
+- `DEPLOYMENT.md` - Updated with Codespaces incompatibility notices
+
+### Files Removed:
+- Legacy startup scripts (consolidated into universal `start.sh`)
+- Codespaces-specific workarounds (project now explicitly blocks Codespaces usage)
 
 ## Usage Instructions
 
@@ -158,14 +157,17 @@ If you encounter SQLite issues during development:
 
 ## Testing the Setup
 
-Run the included test scripts to verify everything works:
+Verify the application setup works correctly:
 
 ```bash
-# Test ChromaDB compatibility
-python3 test_chromadb.py
+# Test the universal startup script
+./start.sh --help
 
-# Test the full application
+# Test app imports and dependencies
 python3 -c "from app.dependencies import app; print('✅ App imports successfully')"
+
+# Test ChromaDB initialization (requires running app)
+python3 -c "import chromadb; print(f'✅ ChromaDB version: {chromadb.__version__}')"
 ```
 
 ## Next Steps

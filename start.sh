@@ -5,7 +5,13 @@
 set -e  # Exit on error
 
 # Detect environment
-if [ -n "$CODESPACES" ] || [ -n "$DEVCONTAINER" ] || [ -f "/.devcontainer-indicator" ]; then
+if [ -n "$CODESPACES" ]; then
+    echo "❌ ERROR: GitHub Codespaces is not supported!"
+    echo "   This project requires SQLite 3.35.0+ (Codespaces has 3.34.1)"
+    echo "   Please use local DevContainer or Docker Compose instead."
+    echo "   See README.md for setup instructions."
+    exit 1
+elif [ -n "$DEVCONTAINER" ] || [ -f "/.devcontainer-indicator" ]; then
     DETECTED_ENV="devcontainer"
 elif [ -n "$WEBSITE_SITE_NAME" ] || [ -n "$APPSETTING_WEBSITE_SITE_NAME" ]; then
     DETECTED_ENV="azure"

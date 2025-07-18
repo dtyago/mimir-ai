@@ -311,12 +311,19 @@ response = requests.post('http://localhost:8000/user/upload', files=files, heade
 
 ## Quick Start
 
-### Option 1: DevContainer (Recommended)
-The easiest way to get started is using VS Code with DevContainer:
+⚠️ **Important**: This project requires SQLite 3.35.0+ and is **NOT compatible with GitHub Codespaces**. Please use one of the recommended local development options below.
 
-1. **Prerequisites:** Install VS Code and Docker Desktop
-2. **Open:** Open the project in VS Code
-3. **Reopen in Container:** When prompted, select "Reopen in Container"
+### Option 1: DevContainer (Recommended)
+The best way to get started is using VS Code with DevContainer **on your local machine**:
+
+1. **Prerequisites:** Install Docker Desktop and VS Code with Dev Containers extension
+2. **Clone locally:**
+   ```bash
+   git clone https://github.com/dtyago/mimir-api.git
+   cd mimir-api
+   code .
+   ```
+3. **Reopen in Container:** When VS Code prompts, select "Reopen in Container"
 4. **Wait:** Let VS Code build the development container (first time only)
 5. **Start:** Run the application:
    ```bash
@@ -325,12 +332,13 @@ The easiest way to get started is using VS Code with DevContainer:
 6. **Access:** Open http://localhost:8000 in your browser
 
 **Benefits:**
+- ✅ SQLite 3.45.1 pre-compiled and ready
 - ✅ All dependencies pre-installed
-- ✅ SQLite compatibility handled automatically
 - ✅ Data persists between container restarts
 - ✅ Consistent development environment
+- ✅ No system-level SQLite conflicts
 
-**⚠️ Note:** GitHub Codespaces is not recommended due to SQLite version limitations. Use local DevContainer or Docker Compose instead.
+🚫 **Do NOT use GitHub Codespaces** - it has SQLite 3.34.1 which is incompatible with ChromaDB requirements.
 
 ### Option 2: Docker Compose
 For a quick Docker-based setup:
