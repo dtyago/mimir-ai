@@ -330,7 +330,21 @@ The easiest way to get started is using VS Code with DevContainer:
 - ✅ Data persists between container restarts
 - ✅ Consistent development environment
 
-### Option 2: Local Development
+**⚠️ Note:** GitHub Codespaces is not recommended due to SQLite version limitations. Use local DevContainer or Docker Compose instead.
+
+### Option 2: Docker Compose
+For a quick Docker-based setup:
+
+1. **Prerequisites:** Install Docker Desktop
+2. **Run:**
+   ```bash
+   git clone https://github.com/dtyago/mimir-api.git
+   cd mimir-api
+   docker-compose up --build
+   ```
+3. **Access:** Open http://localhost:8000 in your browser
+
+### Option 3: Local Development
 For local development without Docker:
 
 1. **Clone and setup:**
