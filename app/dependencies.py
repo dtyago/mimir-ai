@@ -1,10 +1,13 @@
 import os
-import chromadb
 from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Import SQLite compatibility fix before ChromaDB
+from .utils.sqlite_compat import setup_sqlite_compatibility
+import chromadb
 
 from fastapi import FastAPI, Request, Form, File, UploadFile, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,12 +16,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from admin import admin_functions as admin
-from utils.db import UserFaceEmbeddingFunction,ChromaDBFaceHelper, tinydb_helper
-from utils.jwt_utils import decode_jwt
-from api import userlogin, userlogout, userchat, userupload
-from utils.db import ChromaDBFaceHelper
-from utils.chat_rag import AzureOpenAIModelSingleton
+from .admin import admin_functions as admin
+from .utils.db import UserFaceEmbeddingFunction,ChromaDBFaceHelper, tinydb_helper
+from .utils.jwt_utils import decode_jwt
+from .api import userlogin, userlogout, userchat, userupload
+from .utils.db import ChromaDBFaceHelper
+from .utils.chat_rag import AzureOpenAIModelSingleton
 
 # Initialize OAuth2 scheme
 oauth2_scheme = HTTPBearer()

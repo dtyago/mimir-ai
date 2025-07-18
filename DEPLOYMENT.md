@@ -2,64 +2,54 @@
 
 ## 🚀 Starting the Application
 
-### Development Environment
+### Universal Startup Script
 
-#### Option 1: DevContainer (Recommended for VS Code)
+The project now uses a single universal startup script that automatically detects your environment:
+
 ```bash
-# Quick start for devcontainer
-./start-devcontainer.sh
+# Start the application (auto-detects environment)
+./start.sh
+```
+
+**Environment Detection:**
+- **DevContainer**: Auto-detected when running in VS Code DevContainer
+- **Azure App Service**: Auto-detected when Azure environment variables are present  
+- **Production**: Set `ENVIRONMENT=production` or `APP_ENV=production`
+- **Development**: Default fallback for local development
+
+### Environment-Specific Options
+
+#### Option 1: DevContainer (Recommended)
+```bash
+# In VS Code DevContainer (auto-detected)
+./start.sh
 ```
 
 #### Option 2: Local Development
 ```bash
-# Full development setup
-./start-dev.sh
+# Local development with auto-detection
+./start.sh
+
+# Or explicitly set environment
+ENVIRONMENT=development ./start.sh
 ```
 
-#### Option 3: Manual Development Start
+#### Option 3: Production
+```bash
+# Production deployment
+ENVIRONMENT=production ./start.sh
+
+# Or with Docker
+docker run -p 8000:8000 --env-file .env mimir-api
+```
+
+#### Option 4: Manual Development Start
 ```bash
 # Load environment variables
 source .env
 
 # Start with auto-reload
 uvicorn app.dependencies:app --host 0.0.0.0 --port 8000 --reload --log-level info
-```
-
-### Production Environment
-
-#### Option 1: Production Script (Recommended)
-```bash
-# Start production server
-./start-prod.sh
-```
-
-#### Option 2: Docker Compose (Container Deployment)
-```bash
-# Build and start with Docker
-docker-compose up --build -d
-
-# View logs
-docker-compose logs -f mimir-api
-
-# Stop
-docker-compose down
-```
-
-#### Option 3: Manual Production Start
-```bash
-# Load environment variables
-source .env
-
-# Start with Gunicorn
-gunicorn app.dependencies:app \
-    --worker-class uvicorn.workers.UvicornWorker \
-    --workers 4 \
-    --bind 0.0.0.0:8000 \
-    --timeout 120 \
-    --access-logfile data/logs/access.log \
-    --error-logfile data/logs/error.log \
-    --log-level info \
-    --preload
 ```
 
 ## 📊 Application Endpoints
@@ -181,19 +171,40 @@ chmod 700 data/chromadb/
 
 ### Common Issues
 
-1. **Port Already in Use**
+1. **Startup Hanging or Missing .env File**
+   ```bash
+   # Check if .env exists
+   ls -la .env
+   
+   # If missing, copy from example and edit
+   cp .env.example .env
+   nano .env  # Edit with your Azure OpenAI credentials
+   
+   # Or create a basic development .env
+   cat > .env << 'EOF'
+   AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+   AZURE_OPENAI_API_KEY=your-api-key-here
+   AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
+   EC_ADMIN_PWD=$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewAV2Y1R/yLo1Fy.
+   JWT_SECRET_KEY=dev-secret-key-change-in-production
+   CHROMADB_LOC=/app/data/chromadb
+   APP_ENV=development
+   EOF
+   ```
+
+2. **Port Already in Use**
    ```bash
    # Kill process on port 8000
    sudo lsof -ti:8000 | xargs sudo kill -9
    ```
 
-2. **Permission Denied**
+3. **Permission Denied**
    ```bash
    # Fix script permissions
-   chmod +x start-*.sh
+   chmod +x start.sh startup.sh
    ```
 
-3. **Environment Variables Not Loading**
+4. **Environment Variables Not Loading**
    ```bash
    # Check .env file
    cat .env
@@ -202,7 +213,7 @@ chmod 700 data/chromadb/
    python -c "from dotenv import load_dotenv; load_dotenv(); import os; print(os.getenv('AZURE_OPENAI_ENDPOINT'))"
    ```
 
-4. **Dependencies Missing**
+5. **Dependencies Missing**
    ```bash
    # Reinstall dependencies
    pip install -r requirements.txt
@@ -211,13 +222,13 @@ chmod 700 data/chromadb/
 ## 🎯 Best Practices
 
 ### Development
-- Use `start-devcontainer.sh` for consistent environment
-- Enable auto-reload for faster development
+- Use `./start.sh` for consistent environment
+- Enable auto-reload for faster development  
 - Use debug logging level
-- Test with `python test_azure_openai.py`
+- Test with health endpoint: `curl http://localhost:8000/health`
 
 ### Production
-- Use `start-prod.sh` or Docker Compose
+- Use `./start.sh` or Docker Compose for deployment
 - Configure proper logging
 - Set up monitoring and health checks
 - Use environment-specific `.env` files

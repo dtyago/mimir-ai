@@ -20,37 +20,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def setup_azure_environment():
-    """Set up Azure App Service specific environment"""
-    
-    # Create necessary directories
-    directories = [
-        '/tmp/chromadb',
-        '/tmp/uploads',
-        '/tmp/data',
-        '/tmp/logs',
-        '/tmp/face_images'
-    ]
-    
-    for directory in directories:
-        os.makedirs(directory, exist_ok=True)
-        logger.info(f"Created directory: {directory}")
-    
-    # Set Azure-specific environment variables
-    os.environ.setdefault('CHROMADB_LOC', '/tmp/chromadb')
-    os.environ.setdefault('USER_DATA_DIR', '/tmp/data')
-    os.environ.setdefault('UPLOAD_DIR', '/tmp/uploads')
-    os.environ.setdefault('FACE_TEMP_DIR', '/tmp/face_images')
-    os.environ.setdefault('LOG_FILE', '/tmp/logs/mimir-api.log')
-    os.environ.setdefault('APP_ENV', 'production')
-    
-    logger.info("Azure App Service environment setup completed")
-
 def get_application():
     """Get the FastAPI application instance"""
     try:
-        # Setup Azure environment
-        setup_azure_environment()
+        # Set environment for Azure
+        os.environ['ENVIRONMENT'] = 'azure'
+        
+        # Initialize SQLite compatibility before importing app
+        logger.info("Setting up SQLite compatibility...")
+        from app.utils.sqlite_compat import setup_sqlite_compatibility
+        setup_sqlite_compatibility()
         
         # Import and return the FastAPI app
         from app.dependencies import app
@@ -65,7 +44,11 @@ def get_application():
 app = get_application()
 
 if __name__ == "__main__":
-    # This is for local testing
+    # This is for local testing - use the universal startup script instead
+    logger.info("For local testing, please use: ./start.sh")
+    logger.info("This script is intended for Azure App Service only")
+    
     import uvicorn
     port = int(os.environ.get('PORT', 8000))
+    logger.info(f"Starting application on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)

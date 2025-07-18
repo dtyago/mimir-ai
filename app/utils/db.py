@@ -1,7 +1,11 @@
 import os
 from tinydb import TinyDB, Query, where
 from tinydb.storages import MemoryStorage
+
+# Import SQLite compatibility fix before ChromaDB
+from .sqlite_compat import setup_sqlite_compatibility
 import chromadb
+
 from chromadb.api.types import EmbeddingFunction, Embeddings, Image, Images
 from keras_facenet import FaceNet
 from typing import Any

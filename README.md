@@ -120,14 +120,14 @@ uvicorn app.dependencies:app --host 0.0.0.0 --port 8000
 
 #### Option 1: DevContainer (Recommended for VS Code)
 ```bash
-# Quick start for devcontainer environment
-./start-devcontainer.sh
+# Universal startup script - auto-detects environment
+./start.sh
 ```
 
 #### Option 2: Local Development
 ```bash
-# Full development setup with virtual environment
-./start-dev.sh
+# Universal startup script - auto-detects environment
+./start.sh
 ```
 
 #### Option 3: Manual Development
@@ -159,8 +159,8 @@ docker-compose logs -f mimir-api
 
 #### Option 3: Local Production
 ```bash
-# Production server with Gunicorn
-./start-prod.sh
+# Universal startup script - auto-detects environment
+./start.sh
 ```
 
 ### **🔷 Azure App Service Deployment**
@@ -309,6 +309,60 @@ files = {'file': open('document.pdf', 'rb')}
 response = requests.post('http://localhost:8000/user/upload', files=files, headers=headers)
 ```
 
+## Quick Start
+
+### Option 1: DevContainer (Recommended)
+The easiest way to get started is using VS Code with DevContainer:
+
+1. **Prerequisites:** Install VS Code and Docker Desktop
+2. **Open:** Open the project in VS Code
+3. **Reopen in Container:** When prompted, select "Reopen in Container"
+4. **Wait:** Let VS Code build the development container (first time only)
+5. **Start:** Run the application:
+   ```bash
+   ./start.sh
+   ```
+6. **Access:** Open http://localhost:8000 in your browser
+
+**Benefits:**
+- ✅ All dependencies pre-installed
+- ✅ SQLite compatibility handled automatically
+- ✅ Data persists between container restarts
+- ✅ Consistent development environment
+
+### Option 2: Local Development
+For local development without Docker:
+
+1. **Clone and setup:**
+   ```bash
+   git clone https://github.com/dtyago/mimir-api.git
+   cd mimir-api
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+2. **Configure:** Copy `.env.example` to `.env` and set your Azure OpenAI credentials
+
+3. **Start:** Run the application:
+   ```bash
+   ./start.sh
+   ```
+
+### Option 3: Docker Production
+For production deployment:
+
+```bash
+docker build -t mimir-api .
+docker run -p 8000:8000 --env-file .env mimir-api
+```
+
+### First Steps After Startup
+1. **Admin Access:** Go to http://localhost:8000/admin
+2. **Register Users:** Use the admin interface to register users with face images
+3. **Upload Documents:** Users can upload PDFs for AI knowledge base
+4. **Start Chatting:** Users can authenticate with face recognition and chat with AI
+
 ## Environment Variables
 
 ### **Development Environment**
@@ -346,18 +400,12 @@ python -c "import bcrypt; print(bcrypt.hashpw(b'your_password', bcrypt.gensalt()
 
 # Generate JWT secret key
 python -c "import secrets; print(secrets.token_urlsafe(32))"
-
-# Test Azure OpenAI configuration
-python test_azure_openai.py
 ```
 
 ## 🛠️ Development Tools
 
 ### **Setup Scripts**
-- **`setup.sh`** - Initial project setup and virtual environment creation
-- **`start-devcontainer.sh`** - Quick start for devcontainer environment
-- **`start-dev.sh`** - Full development setup with virtual environment
-- **`start-prod.sh`** - Local production server with Gunicorn
+- **`start.sh`** - Universal startup script (auto-detects environment)
 
 ### **Azure Deployment Tools**
 - **`deploy-azure.sh`** - Automated Azure App Service deployment
@@ -366,7 +414,6 @@ python test_azure_openai.py
 - **`startup.sh`** - Bash startup script for Azure
 
 ### **Testing Tools**
-- **`test_azure_openai.py`** - Test Azure OpenAI configuration
 - **Health Check Endpoint**: `/health` - Application health monitoring
 
 ### **Configuration Files**
@@ -410,11 +457,11 @@ mimir-api/
 ├── requirements.txt               # Python dependencies
 ├── Dockerfile                     # Docker configuration
 ├── docker-compose.yml            # Docker Compose configuration
-├── setup.sh                      # Project setup script
-├── start-*.sh                    # Startup scripts
+├── start.sh                      # Universal startup script
+├── startup.sh                    # Azure startup wrapper
+├── startup.py                    # Azure startup Python script
 ├── deploy-azure.sh               # Azure deployment script
 ├── azure-config.sh               # Azure configuration helper
-├── test_azure_openai.py          # Azure OpenAI test script
 ├── .env*                         # Environment configuration files
 ├── DEPLOYMENT.md                 # Deployment documentation
 ├── AZURE_DEPLOYMENT.md           # Azure-specific deployment guide
@@ -427,11 +474,11 @@ mimir-api/
 
 #### **Azure OpenAI Connection Issues**
 ```bash
-# Test your configuration
-python test_azure_openai.py
-
 # Check environment variables
 python -c "import os; print(os.getenv('AZURE_OPENAI_ENDPOINT'))"
+
+# Test the health endpoint
+curl http://localhost:8000/health
 ```
 
 #### **Port Already in Use**
@@ -445,8 +492,8 @@ sudo lsof -ti:8000 | xargs sudo kill -9
 # Reinstall dependencies
 pip install -r requirements.txt
 
-# Or use the setup script
-./setup.sh
+# Or rebuild the Docker container
+docker-compose up --build
 ```
 
 #### **Azure Deployment Issues**
@@ -696,12 +743,13 @@ curl -X POST "http://localhost:8000/user/upload" \
    ```
 3. **Set up development environment**
    ```bash
-   ./setup.sh
-   ./start-devcontainer.sh
+   # Use the universal startup script
+   ./start.sh
    ```
 4. **Make your changes and test**
    ```bash
-   python test_azure_openai.py
+   # Test the health endpoint
+   curl http://localhost:8000/health
    ```
 5. **Commit your changes**
    ```bash
@@ -763,4 +811,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **✨ Ready to Deploy!** Your Mimir API is now fully configured with Azure OpenAI integration and ready for both development and production deployment on Azure App Service.
 
-**🚀 Quick Start**: `./start-devcontainer.sh` (Development) or `./deploy-azure.sh` (Production)
+**🚀 Quick Start**: `./start.sh` (Universal) or `./deploy-azure.sh` (Production)
