@@ -59,9 +59,9 @@ case $ENVIRONMENT in
     "devcontainer")
         echo "🐳 Configuring for DevContainer..."
         export APP_ENV=development
-        export PYTHONPATH=/app
-        DATA_DIR="/app/data"
-        WORK_DIR="/app"
+        export PYTHONPATH=$(pwd)
+        DATA_DIR="$(pwd)/data"
+        WORK_DIR=$(pwd)
         export CHROMADB_ALLOW_RESET=true
         ;;
     *)
