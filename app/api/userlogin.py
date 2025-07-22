@@ -33,33 +33,36 @@ async def verify_user_face(file_path: str) -> Optional[dict]:
 
 @router.post("/user/login")
 async def user_login(file: UploadFile = File(...)):
-    file_path = f"/tmp/{uuid.uuid4()}.jpg"  # Generates a unique filename
-    with open(file_path, "wb") as buffer:
-        contents = await file.read()
-        buffer.write(contents)
+    file_path = f"/workspaces/mimir-api/data/tmp/{uuid.uuid4()}.jpg"  # Generates a unique filename
+    try:
+        with open(file_path, "wb") as buffer:
+            contents = await file.read()
+            buffer.write(contents)
 
-    # Perform face verification
-    verification_result = await verify_user_face(file_path)
-    if verification_result:
-        user_id = verification_result["user_id"]
-        metadata = verification_result["metadata"]
-        # Generate JWT token with user information
-        access_token = create_access_token(data={"sub": user_id, "name": metadata["name"], "role": metadata["role"]})
+        # Perform face verification
+        verification_result = await verify_user_face(file_path)
+        if verification_result:
+            user_id = verification_result["user_id"]
+            metadata = verification_result["metadata"]
+            # Generate JWT token with user information
+            access_token = create_access_token(data={"sub": user_id, "name": metadata["name"], "role": metadata["role"]})
 
-        # Calculate expiration time for the token
-        expires_at = (datetime.utcnow() + timedelta(minutes=SESSION_VALIDITY)).isoformat()  # Example expiration time
-        
-        # Store the token in TinyDB
-        tinydb_helper.insert_token(user_id, access_token, expires_at)
+            # Calculate expiration time for the token
+            expires_at = (datetime.utcnow() + timedelta(minutes=SESSION_VALIDITY)).isoformat()  # Example expiration time
+            
+            # Store the token in TinyDB
+            tinydb_helper.insert_token(user_id, access_token, expires_at)
 
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user_id": user_id,
-            "name": metadata["name"],
-            "role": metadata["role"]
-        }
-    else:
-        raise HTTPException(status_code=400, detail="Face not recognized")
-    
-    os.remove(file_path)
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user_id": user_id,
+                "name": metadata["name"],
+                "role": metadata["role"]
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Face not recognized")
+    finally:
+        # Clean up the temporary file
+        if os.path.exists(file_path):
+            os.remove(file_path)
