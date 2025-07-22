@@ -36,7 +36,7 @@
 	},
 
 	// Commands to run after container creation
-	"postCreateCommand": "echo 'Development container ready! Run: ./start.sh'"
+	"postCreateCommand": "echo 'Development container ready! Run: ./start.sh'",
 
 	// VS Code customizations
 	//"customizations": {
@@ -61,14 +61,14 @@
 	//}
 
 	// Environment variables for development
-	//"remoteEnv": {
-	//	"ENVIRONMENT": "devcontainer",
-	//	"APP_ENV": "development",
-	//	"PYTHONPATH": "/app",
-	//	"CHROMADB_LOC": "/app/data/chromadb",
-	//	"USER_DATA_DIR": "/app/data",
-	//	"UPLOAD_DIR": "/app/data/uploads",
-	//	"LOG_FILE": "/app/data/logs/mimir-api.log",
-	//	"CHROMADB_ALLOW_RESET": "true"
-	//}
+	"remoteEnv": {
+		"ENVIRONMENT": "devcontainer",
+		"APP_ENV": "development",
+		"PYTHONPATH": "/app",
+		"CHROMADB_LOC": "/app/data/chromadb",
+		"USER_DATA_DIR": "/app/data",
+		"UPLOAD_DIR": "/app/data/uploads",
+		"LOG_FILE": "/app/data/logs/mimir-api.log",
+		"CHROMADB_ALLOW_RESET": "true"
+	}
 }

@@ -27,7 +27,6 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    libgthread-2.0-0 \
     # General utilities
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -54,7 +53,7 @@ RUN pip install --upgrade pip setuptools wheel
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
@@ -63,7 +62,7 @@ COPY start.sh ./
 COPY .env* ./
 
 # Create necessary directories with proper permissions
-RUN mkdir -p data/{chromadb,uploads,tmp,logs} tmp/uploads && \
+RUN mkdir -p data/chromadb data/uploads data/tmp data/logs tmp/uploads && \
     chmod -R 755 data tmp && \
     chmod 700 data/chromadb && \
     chmod +x start.sh
