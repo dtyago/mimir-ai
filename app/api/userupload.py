@@ -1,10 +1,10 @@
 from typing import Any
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 import os
-from dependencies import get_current_user
+from ..dependencies import get_current_user
 # Assuming a utility for processing PDFs and generating embeddings
-from utils.doc_ingest import ingest_document
-from utils.chat_rag import sanitize_collection_name
+from ..utils.doc_ingest import ingest_document
+from ..utils.chat_rag import sanitize_collection_name
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ async def upload_file(file: UploadFile = File(...), current_user: Any = Depends(
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a PDF.")
     
-    upload_dir = "/home/user/data/uploads"
+    upload_dir = "/workspaces/mimir-api/data/uploads"
     os.makedirs(upload_dir, exist_ok=True)
     
     file_location = f"{upload_dir}/{file.filename}"

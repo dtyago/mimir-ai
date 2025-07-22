@@ -3,8 +3,8 @@ import bcrypt
 import os
 import shutil
 
-from utils.chat_rag import sanitize_collection_name
-from utils.mm_image_utils import get_user_cropped_image_from_photo
+from ..utils.chat_rag import sanitize_collection_name
+from ..utils.mm_image_utils import get_user_cropped_image_from_photo
 
 # Import vector store for database operations
 from langchain_community.vectorstores import Chroma
@@ -25,7 +25,7 @@ async def register_user(db, email: str, name: str, role: str, file: UploadFile =
     :return: email 
     """
     unique_filename = f"{email}.jpg"  # Use the email as the filename
-    file_path = f"/home/user/data/tmp/{unique_filename}"  # Specify our upload directory
+    file_path = f"/workspaces/mimir-api/data/tmp/{unique_filename}"  # Use mounted directory
 
     # Ensure the directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -67,15 +67,18 @@ def verify_admin_password(submitted_user: str, submitted_password: str) -> bool:
     """
     if submitted_user == "admin":
         # Retrieve the stored hash from environment variable
-        stored_password_hash = os.getenv("EC_ADMIN_PWD", "").encode('utf-8')
-        print(stored_password_hash)
+        stored_password_hash = os.getenv("EC_ADMIN_PWD", "")
+        
+        # Encode to bytes for bcrypt
+        stored_password_hash_bytes = stored_password_hash.encode('utf-8')
+        
         # Directly compare the submitted password with the stored hash
-        return bcrypt.checkpw(submitted_password.encode('utf-8'), stored_password_hash)
+        return bcrypt.checkpw(submitted_password.encode('utf-8'), stored_password_hash_bytes)
 
     return False
 
 # Get disk usage 
-def get_disk_usage(path="/home/user/data"):
+def get_disk_usage(path="/workspaces/mimir-api/data"):
     total, used, free = shutil.disk_usage(path)
     # Convert bytes to MB by dividing by 2^20
     return {

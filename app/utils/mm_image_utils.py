@@ -6,6 +6,8 @@ import numpy as np
 def load_image(filename):
     """Load an image from a file path."""
     img = cv2.imread(filename)
+    if img is None:
+        raise ValueError(f"Could not load image from {filename}. Please ensure the file is a valid image format.")
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 

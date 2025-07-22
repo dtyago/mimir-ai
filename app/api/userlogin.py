@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, File, UploadFile, HTTPException
-from utils.db import tinydb_helper, chromadb_face_helper
-from utils.jwt_utils import create_access_token
-from utils.mm_image_utils import get_user_cropped_image_from_photo
+from ..utils.db import tinydb_helper, chromadb_face_helper
+from ..utils.jwt_utils import create_access_token
+from ..utils.mm_image_utils import get_user_cropped_image_from_photo
 import os
 import uuid
 

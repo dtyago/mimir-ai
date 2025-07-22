@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
-from dependencies import get_current_user
-from utils.chat_rag import llm_infer
-from utils.chat_rag import sanitize_collection_name
+from ..dependencies import get_current_user
+from ..utils.chat_rag import llm_infer
+from ..utils.chat_rag import sanitize_collection_name
 from typing import Any
 
 router = APIRouter()

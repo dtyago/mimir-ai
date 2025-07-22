@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
-from utils.db import tinydb_helper  # Ensure this import is correct based on our project structure
-from dependencies import get_current_user, oauth2_scheme
+from ..utils.db import tinydb_helper  # Ensure this import is correct based on our project structure
+from ..dependencies import get_current_user, oauth2_scheme
 
 router = APIRouter()
 

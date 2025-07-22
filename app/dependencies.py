@@ -19,7 +19,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .admin import admin_functions as admin
 from .utils.db import UserFaceEmbeddingFunction,ChromaDBFaceHelper, tinydb_helper
 from .utils.jwt_utils import decode_jwt
-from .api import userlogin, userlogout, userchat, userupload
 from .utils.db import ChromaDBFaceHelper
 from .utils.chat_rag import AzureOpenAIModelSingleton
 
@@ -99,7 +98,7 @@ async def startup_event():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Setup Jinja2Templates to point to the templates directory
-templates = Jinja2Templates(directory="admin/templates")
+templates = Jinja2Templates(directory="app/admin/templates")
 
 @app.get("/")
 async def get_admin_login(request: Request):
@@ -139,7 +138,7 @@ async def handle_user_registration(request: Request, email: str = Form(...), nam
     user_id = await admin.register_user(user_faces_db, email, name, role, file)
     if user_id:
         # Calculate disk usage
-        disk_usage = admin.get_disk_usage("/home/user/data")
+        disk_usage = admin.get_disk_usage("/workspaces/mimir-api/data")
 
         # Redirect or display a success message
         return templates.TemplateResponse("registration_success.html", {
@@ -170,6 +169,9 @@ async def delete_faces(request: Request):
         request.session['flash'] = f"Failed to delete user data: {str(e)}"
     
     return RedirectResponse(url="/admin/data_management", status_code=303)
+
+# Import API routers and register them
+from .api import userlogin, userlogout, userchat, userupload
 
 app.include_router(userlogin.router)
 app.include_router(userlogout.router)
