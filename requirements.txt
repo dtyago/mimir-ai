@@ -42,5 +42,6 @@ pypdf>=4.0.0                      # PDF document processing
 jinja2>=3.1.0                     # Template engine for admin interface
 
 # Development and debugging
-pretty_errors>=1.2.0              # Enhanced error formattingtf-keras
-langchain-huggingface
+pretty_errors>=1.2.0              # Enhanced error formatting
+tf-keras>=2.19.0                  # Backwards-compatible Keras for Transformers
+langchain-huggingface>=0.3.0      # Updated HuggingFace embeddings for LangChain
