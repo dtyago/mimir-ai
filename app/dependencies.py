@@ -163,12 +163,28 @@ async def get_db_details(request: Request):
 async def delete_faces(request: Request):
     try:
         # Call your function to remove all faces
-        admin.remove_all_faces(ec_client)
-        request.session['flash'] = "All user data successfully deleted."
+        success = admin.remove_all_faces(ec_client)
+        if success:
+            message = "All user data successfully deleted."
+            return templates.TemplateResponse("data_management.html", {
+                "request": request,
+                "success_message": message,
+                "face_count": {"face_count": 0, "all_faces": {"ids": []}, "all_collections": []}
+            })
+        else:
+            message = "Failed to delete user data."
+            return templates.TemplateResponse("data_management.html", {
+                "request": request,
+                "error_message": message,
+                "face_count": admin.faces_count(ec_client, user_faces_db)
+            })
     except Exception as e:
-        request.session['flash'] = f"Failed to delete user data: {str(e)}"
-    
-    return RedirectResponse(url="/admin/data_management", status_code=303)
+        error_message = f"Failed to delete user data: {str(e)}"
+        return templates.TemplateResponse("data_management.html", {
+            "request": request,
+            "error_message": error_message,
+            "face_count": admin.faces_count(ec_client, user_faces_db)
+        })
 
 # Import API routers and register them
 from .api import userlogin, userlogout, userchat, userupload

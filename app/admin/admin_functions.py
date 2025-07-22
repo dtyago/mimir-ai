@@ -103,19 +103,34 @@ def faces_count(client, db):
 
 # Delete all faces in collection
 def remove_all_faces(client, user_faces_collection="user_faces_db"):
-    # Fetch all user IDs from the user_faces_db collection
-    all_user_ids = client.get_all_ids(collection_name=user_faces_collection)
-    CHROMADB_LOC = os.getenv('CHROMADB_LOC')
-    # Loop through all user IDs and delete associated collections
-    for user_id in all_user_ids:
-        sanitized_collection_name = sanitize_collection_name(user_id)
-        vectordb = Chroma(
-            collection_name=sanitized_collection_name,
-            embedding_function=HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2'),
-            persist_directory=f"{CHROMADB_LOC}/{sanitized_collection_name}", # Optional: Separate directory for each user's data
-            )
-        all_ids = vectordb._collection.get()
-        vectordb._collection.delete(ids=all_ids)
-    # Finally, delete the user_faces_db collection itself
-    client.delete_collection(user_faces_collection)
-    print(f"All user collections and {user_faces_collection} have been removed.")
+    try:
+        # Get the user_faces_db collection
+        collection = client.get_collection(name=user_faces_collection)
+        
+        # Get all documents in the collection
+        all_data = collection.get()
+        all_user_ids = all_data['ids'] if all_data and 'ids' in all_data else []
+        
+        CHROMADB_LOC = os.getenv('CHROMADB_LOC')
+        # Loop through all user IDs and delete associated collections
+        for user_id in all_user_ids:
+            sanitized_collection_name = sanitize_collection_name(user_id)
+            try:
+                vectordb = Chroma(
+                    collection_name=sanitized_collection_name,
+                    embedding_function=HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2'),
+                    persist_directory=f"{CHROMADB_LOC}/{sanitized_collection_name}", # Optional: Separate directory for each user's data
+                    )
+                # Delete all documents in this user's collection
+                user_data = vectordb._collection.get()
+                if user_data and 'ids' in user_data and user_data['ids']:
+                    vectordb._collection.delete(ids=user_data['ids'])
+            except Exception as e:
+                print(f"Error deleting collection for user {user_id}: {e}")
+        
+        # Finally, delete the user_faces_db collection itself
+        client.delete_collection(user_faces_collection)
+        return True
+    except Exception as e:
+        print(f"Error in remove_all_faces: {e}")
+        return False
