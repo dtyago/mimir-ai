@@ -9,7 +9,7 @@ from ..utils.mm_image_utils import get_user_cropped_image_from_photo
 # Import vector store for database operations
 from langchain_community.vectorstores import Chroma
 # Import embeddings module from langchain for vector representations of text
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 # Registrering a face
 async def register_user(db, email: str, name: str, role: str, file: UploadFile = File(...)):
@@ -95,11 +95,19 @@ def get_disk_usage(path="/workspaces/mimir-api/data"):
 
 # Display all faces in collection
 def faces_count(client, db):
-    return {
-        "face_count"        : db.count(),
-        "all_faces"         : db.get(),
-        "all_collections"   : client.list_collections() # List all collections at this location
-    } 
+    try:
+        return {
+            "face_count"        : db.count(),
+            "all_faces"         : db.get(),
+            "all_collections"   : client.list_collections() # List all collections at this location
+        }
+    except Exception as e:
+        print(f"Error getting faces count: {e}")
+        return {
+            "face_count"        : 0,
+            "all_faces"         : {"ids": []},
+            "all_collections"   : [] # List all collections at this location
+        } 
 
 # Delete all faces in collection
 def remove_all_faces(client, user_faces_collection="user_faces_db"):

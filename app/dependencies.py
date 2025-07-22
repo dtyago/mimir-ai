@@ -169,21 +169,29 @@ async def delete_faces(request: Request):
             return templates.TemplateResponse("data_management.html", {
                 "request": request,
                 "success_message": message,
-                "face_count": {"face_count": 0, "all_faces": {"ids": []}, "all_collections": []}
+                "faces": {"face_count": 0, "all_faces": {"ids": []}, "all_collections": []}
             })
         else:
             message = "Failed to delete user data."
+            try:
+                faces_data = admin.faces_count(ec_client, user_faces_db)
+            except Exception:
+                faces_data = {"face_count": 0, "all_faces": {"ids": []}, "all_collections": []}
             return templates.TemplateResponse("data_management.html", {
                 "request": request,
                 "error_message": message,
-                "face_count": admin.faces_count(ec_client, user_faces_db)
+                "faces": faces_data
             })
     except Exception as e:
         error_message = f"Failed to delete user data: {str(e)}"
+        try:
+            faces_data = admin.faces_count(ec_client, user_faces_db)
+        except Exception:
+            faces_data = {"face_count": 0, "all_faces": {"ids": []}, "all_collections": []}
         return templates.TemplateResponse("data_management.html", {
             "request": request,
             "error_message": error_message,
-            "face_count": admin.faces_count(ec_client, user_faces_db)
+            "faces": faces_data
         })
 
 # Import API routers and register them
