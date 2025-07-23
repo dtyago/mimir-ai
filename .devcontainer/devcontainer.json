@@ -39,26 +39,35 @@
 	"postCreateCommand": "echo 'Development container ready! Run: ./start.sh'",
 
 	// VS Code customizations
-	//"customizations": {
-	//	"vscode": {
-	//		"extensions": [
-	//			"ms-python.python",
-	//			"ms-python.flake8",
-	//			"ms-python.black-formatter",
-	//			"ms-toolsai.jupyter",
-	//			"bradlc.vscode-tailwindcss",
-	//			"ms-vscode.vscode-json"
-	//		],
-	//		"settings": {
-	//			"python.defaultInterpreterPath": "/usr/local/bin/python",
-	//			"python.formatting.provider": "black",
-	//			"python.linting.enabled": true,
-	//			"python.linting.flake8Enabled": true,
-	//			"editor.formatOnSave": true,
-	//			"files.autoSave": "afterDelay"
-	//		}
-	//	}
-	//}
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.flake8",
+				"ms-python.black-formatter",
+				"ms-toolsai.jupyter",
+				"bradlc.vscode-tailwindcss",
+				"ms-vscode.vscode-json",
+				"ms-python.pylint",
+				"ms-python.mypy-type-checker"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.formatting.provider": "black",
+				"python.linting.enabled": true,
+				"python.linting.flake8Enabled": true,
+				"python.linting.pylintEnabled": true,
+				"python.analysis.typeCheckingMode": "basic",
+				"editor.formatOnSave": true,
+				"files.autoSave": "afterDelay",
+				"editor.codeActionsOnSave": {
+					"source.organizeImports": "explicit"
+				},
+				"python.analysis.autoImportCompletions": true,
+				"python.terminal.activateEnvironment": false
+			}
+		}
+	},
 
 	// Environment variables for development
 	"remoteEnv": {
