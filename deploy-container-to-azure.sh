@@ -27,13 +27,11 @@ az acr create \
     --resource-group $RESOURCE_GROUP \
     --name $ACR_NAME \
     --sku Basic \
-    --admin-enabled true
+    --admin-enabled false
 
-# 3. Get ACR credentials
-echo "🔑 Getting ACR credentials..."
+# 3. Get ACR server (no admin credentials needed for managed identity)
+echo "🔑 Getting ACR server..."
 ACR_SERVER=$(az acr show --name $ACR_NAME --resource-group $RESOURCE_GROUP --query "loginServer" --output tsv)
-ACR_USERNAME=$(az acr credential show --name $ACR_NAME --query "username" --output tsv)
-ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --query "passwords[0].value" --output tsv)
 
 echo "ACR Server: $ACR_SERVER"
 
@@ -52,23 +50,33 @@ az appservice plan create \
     --is-linux \
     --sku B1
 
-# 6. Create Web App with container
+# 6. Create Web App with container (using the image we just built)
 echo "🌐 Creating Web App..."
 az webapp create \
     --resource-group $RESOURCE_GROUP \
     --plan plan-$APP_NAME \
     --name $APP_NAME \
-    --deployment-container-image-name $ACR_SERVER/$IMAGE_NAME:$TAG
+    --deployment-container-image-name $ACR_SERVER/$IMAGE_NAME:$TAG \
+    --assign-identity
 
-# 7. Configure container registry credentials
-echo "🔐 Configuring container registry credentials..."
+# 7. Configure managed identity for ACR access
+echo "🔐 Configuring managed identity for ACR access..."
+
+# Get the App Service principal ID
+PRINCIPAL_ID=$(az webapp identity show --name $APP_NAME --resource-group $RESOURCE_GROUP --query principalId --output tsv)
+
+# Assign ACR pull role to the managed identity
+az role assignment create \
+    --assignee $PRINCIPAL_ID \
+    --role AcrPull \
+    --scope /subscriptions/$(az account show --query id --output tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME
+
+# Configure the container with managed identity
 az webapp config container set \
     --name $APP_NAME \
     --resource-group $RESOURCE_GROUP \
     --docker-custom-image-name $ACR_SERVER/$IMAGE_NAME:$TAG \
-    --docker-registry-server-url https://$ACR_SERVER \
-    --docker-registry-server-user $ACR_USERNAME \
-    --docker-registry-server-password $ACR_PASSWORD
+    --docker-registry-server-url https://$ACR_SERVER
 
 # 8. Configure application settings (environment variables)
 echo "⚙️ Configuring application settings..."

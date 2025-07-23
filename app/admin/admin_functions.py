@@ -69,6 +69,13 @@ def verify_admin_password(submitted_user: str, submitted_password: str) -> bool:
         # Retrieve the stored hash from environment variable
         stored_password_hash = os.getenv("EC_ADMIN_PWD", "")
         
+        # Add validation check
+        if not stored_password_hash:
+            return False
+            
+        if len(stored_password_hash) != 60:
+            return False
+        
         # Encode to bytes for bcrypt
         stored_password_hash_bytes = stored_password_hash.encode('utf-8')
         

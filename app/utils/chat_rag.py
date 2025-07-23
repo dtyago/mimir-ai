@@ -215,13 +215,21 @@ class EnhancedConversationalChain:
         vectordb = await get_vectordb_for_user_cached(user_collection_name)
         retrieved_docs = vectordb.similarity_search(input_text)
         augmented_input = self.augment_input_with_docs(input_text, retrieved_docs)
-        return await super().run(augmented_input)
+        
+        # Use the LLM directly since this class doesn't inherit from a chain
+        try:
+            response = await self.llm.ainvoke([{"role": "user", "content": augmented_input}])
+            return response.content
+        except Exception as e:
+            # Fallback to sync invoke if async is not available
+            response = self.llm.invoke([{"role": "user", "content": augmented_input}])
+            return response.content
 
     def augment_input_with_docs(self, input_text, docs):
         max_docs = 3
         sentences_per_summary = 2
 
-        summaries = [self.generate_summary(doc.get('text', ''), sentences_per_summary) for doc in docs[:max_docs]]
+        summaries = [self.generate_summary(doc.page_content, sentences_per_summary) for doc in docs[:max_docs]]
         augmented_input = "\n".join(["Summary: " + summary for summary in summaries] + [input_text])
 
         return augmented_input
