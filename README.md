@@ -403,19 +403,21 @@ Configure these in your `.env` file:
 | `JWT_SECRET_KEY` | JWT signing key | `WWjndJ4E...` |
 
 ### **Azure App Service Environment**
-Configure these in Azure Portal > App Service > Configuration:
+⚠️ **Security**: Configure these in Azure Portal > App Service > Configuration > Application Settings. Never commit secrets to version control.
 
-| Variable | Description | Azure Value |
-|----------|-------------|-------------|
-| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI service endpoint | `https://mimir-base.openai.azure.com/` |
-| `AZURE_OPENAI_API_KEY` | Azure OpenAI API key | Your actual API key |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI service endpoint | `https://your-resource-name.openai.azure.com/` |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI API key | Set your actual API key |
 | `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version | `2024-12-01-preview` |
-| `AZURE_OPENAI_DEPLOYMENT_NAME` | Azure OpenAI deployment name | `gpt-4o` |
+| `AZURE_OPENAI_DEPLOYMENT_NAME` | Azure OpenAI deployment name | Your deployment name |
 | `CHROMADB_LOC` | ChromaDB data directory | `/tmp/chromadb` |
-| `EC_ADMIN_PWD` | Hashed admin password | Your hashed password |
-| `JWT_SECRET_KEY` | JWT signing key | Your JWT secret |
+| `EC_ADMIN_PWD` | Hashed admin password | Generate using command below |
+| `JWT_SECRET_KEY` | JWT signing key | Generate using command below |
 | `APP_ENV` | Application environment | `production` |
 | `SCM_DO_BUILD_DURING_DEPLOYMENT` | Build during deployment | `true` |
+
+**Reference**: Use `.env.azure.example` as a template for all required variables.
 
 ### **Environment Setup Helper**
 ```bash

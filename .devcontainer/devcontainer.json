@@ -36,7 +36,7 @@
 	},
 
 	// Commands to run after container creation
-	"postCreateCommand": "echo 'Development container ready! Run: ./start.sh'",
+	"postCreateCommand": "echo 'Development container ready! Configure your .env file and run: ./start.sh'",
 
 	// VS Code customizations
 	"customizations": {

@@ -139,6 +139,7 @@ celerybeat.pid
 .env.local
 .env.production
 .env.dev
+.env.azure
 .envrc
 .venv
 env/

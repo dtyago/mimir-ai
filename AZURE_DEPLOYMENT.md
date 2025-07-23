@@ -34,19 +34,23 @@ az webapp create \
 ```
 
 ### 2. Configure Application Settings
+
+⚠️ **Security Notice**: Never commit secrets to version control. Use Azure App Service Configuration for all sensitive values.
+
 ```bash
-# Set environment variables
+# Set environment variables in Azure App Service
+# IMPORTANT: Replace placeholder values with your actual secrets
 az webapp config appsettings set \
     --name mimir-api-prod \
     --resource-group rg-mimir-api \
     --settings \
-    AZURE_OPENAI_ENDPOINT="https://mimir-base.openai.azure.com/" \
-    AZURE_OPENAI_API_KEY="your-api-key" \
+    AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/" \
+    AZURE_OPENAI_API_KEY="your-actual-api-key-here" \
     AZURE_OPENAI_API_VERSION="2024-12-01-preview" \
-    AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o" \
+    AZURE_OPENAI_DEPLOYMENT_NAME="your-deployment-name" \
     CHROMADB_LOC="/tmp/chromadb" \
-    EC_ADMIN_PWD='$2b$12$yf9rId6L8X04aVIVE/jUluiyhBxyjIiP5lYW8xji4yiOFrfMlrPGu' \
-    JWT_SECRET_KEY="WWjndJ4EOMvTxngjx8_1w6cc2YnsRy02HpydJ_NH40I" \
+    EC_ADMIN_PWD="your-bcrypt-hashed-password-here" \
+    JWT_SECRET_KEY="your-jwt-secret-key-here" \
     APP_ENV="production" \
     SCM_DO_BUILD_DURING_DEPLOYMENT="true"
 
@@ -81,19 +85,34 @@ az webapp deployment source config-zip \
     --src mimir-api.zip
 ```
 
+## � Security Best Practices
+
+### Environment Variables Management
+- **✅ DO**: Set all secrets in Azure Portal > App Service > Configuration > Application Settings
+- **✅ DO**: Use Azure Key Vault for highly sensitive data
+- **✅ DO**: Reference `.env.azure.example` for required variables
+- **❌ DON'T**: Commit `.env.azure` with real secrets to version control
+- **❌ DON'T**: Hardcode secrets in deployment scripts
+- **❌ DON'T**: Share API keys in documentation or chat
+
+### Required Application Settings
+Set these in Azure Portal > App Service > Configuration:
+
+| Setting | Example/Description |
+|---------|---------------------|
+| `AZURE_OPENAI_ENDPOINT` | https://your-resource-name.openai.azure.com/ |
+| `AZURE_OPENAI_API_KEY` | Your actual Azure OpenAI API key |
+| `AZURE_OPENAI_API_VERSION` | 2024-12-01-preview |
+| `AZURE_OPENAI_DEPLOYMENT_NAME` | Your model deployment name |
+| `CHROMADB_LOC` | /tmp/chromadb |
+| `EC_ADMIN_PWD` | Bcrypt hashed admin password |
+| `JWT_SECRET_KEY` | Cryptographically secure random key |
+| `CORS_ORIGINS` | https://your-app-name.azurewebsites.net |
+
 ## 🔧 Configuration Files
 
 ### Application Settings (Environment Variables)
-Set these in Azure Portal > App Service > Configuration:
-
-| Setting | Value |
-|---------|-------|
-| `AZURE_OPENAI_ENDPOINT` | https://mimir-base.openai.azure.com/ |
-| `AZURE_OPENAI_API_KEY` | Your actual API key |
-| `AZURE_OPENAI_API_VERSION` | 2024-12-01-preview |
-| `AZURE_OPENAI_DEPLOYMENT_NAME` | gpt-4o |
-| `CHROMADB_LOC` | /tmp/chromadb |
-| `EC_ADMIN_PWD` | Your hashed password |
+Use the table above to configure all required environment variables in Azure Portal.
 | `JWT_SECRET_KEY` | Your JWT secret |
 | `APP_ENV` | production |
 | `SCM_DO_BUILD_DURING_DEPLOYMENT` | true |

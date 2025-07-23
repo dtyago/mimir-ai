@@ -59,6 +59,31 @@ case $ENVIRONMENT in
         export APP_ENV=production
         DATA_DIR="/tmp"
         WORK_DIR="/home/site/wwwroot"
+        
+        # Validate required Azure App Service environment variables
+        echo "🔍 Validating Azure App Service configuration..."
+        required_vars=("AZURE_OPENAI_ENDPOINT" "AZURE_OPENAI_API_KEY" "AZURE_OPENAI_DEPLOYMENT_NAME" "EC_ADMIN_PWD" "JWT_SECRET_KEY")
+        missing_vars=()
+        for var in "${required_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+                missing_vars+=("$var")
+            fi
+        done
+        
+        if [ ${#missing_vars[@]} -gt 0 ]; then
+            echo "❌ Missing required environment variables in Azure App Service:"
+            for var in "${missing_vars[@]}"; do
+                echo "   - $var"
+            done
+            echo ""
+            echo "📋 To fix this:"
+            echo "   1. Go to Azure Portal > App Service > Configuration > Application Settings"
+            echo "   2. Add the missing environment variables"
+            echo "   3. Restart the App Service"
+            echo "   4. See .env.azure.example for reference values"
+            exit 1
+        fi
+        echo "✅ All required Azure environment variables are set"
         ;;
     "production")
         echo "🏭 Configuring for production..."
