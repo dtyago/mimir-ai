@@ -7,13 +7,13 @@
 	
 	// Dev container configuration
 	"remoteUser": "mimir",
-	"workspaceFolder": "/app",
+	"workspaceFolder": "/workspaces/mimir-api",
 	
 	// Mounts for persistent data
 	"mounts": [
-		"source=mimir-chromadb-data,target=/app/data/chromadb,type=volume",
-		"source=mimir-logs-data,target=/app/data/logs,type=volume",
-		"source=mimir-uploads-data,target=/app/data/uploads,type=volume"
+		"source=mimir-chromadb-data,target=/workspaces/mimir-api/data/chromadb,type=volume",
+		"source=mimir-logs-data,target=/workspaces/mimir-api/data/logs,type=volume",
+		"source=mimir-uploads-data,target=/workspaces/mimir-api/data/uploads,type=volume"
 	],
 	
 	// Features to add to the dev container
@@ -64,11 +64,11 @@
 	"remoteEnv": {
 		"ENVIRONMENT": "devcontainer",
 		"APP_ENV": "development",
-		"PYTHONPATH": "/app",
-		"CHROMADB_LOC": "/app/data/chromadb",
-		"USER_DATA_DIR": "/app/data",
-		"UPLOAD_DIR": "/app/data/uploads",
-		"LOG_FILE": "/app/data/logs/mimir-api.log",
+		"PYTHONPATH": "/workspaces/mimir-api",
+		"CHROMADB_LOC": "/workspaces/mimir-api/data/chromadb",
+		"USER_DATA_DIR": "/workspaces/mimir-api/data",
+		"UPLOAD_DIR": "/workspaces/mimir-api/data/uploads",
+		"LOG_FILE": "/workspaces/mimir-api/data/logs/mimir-api.log",
 		"CHROMADB_ALLOW_RESET": "true"
 	}
 }
