@@ -42,8 +42,11 @@ echo "🚀 Starting Mimir API"
 echo "Environment: $ENVIRONMENT"
 echo "========================================="
 
-# Load environment variables if .env exists
-if [ -f .env ] && [ "$ENVIRONMENT" != "azure" ]; then
+# Load environment variables based on context
+if [ "$ENVIRONMENT" = "azure" ]; then
+    # Azure App Service - environment variables are already set by Azure
+    echo "🔷 Using Azure App Service environment variables"
+elif [ -f .env ] && [ "$ENVIRONMENT" != "azure" ]; then
     echo "✅ Loading environment variables from .env"
     set -a  # Automatically export all variables
     source .env

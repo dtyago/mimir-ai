@@ -141,8 +141,8 @@ uvicorn app.dependencies:app --host 0.0.0.0 --port 8000 --reload
 
 #### Option 1: Azure App Service (Recommended for Production)
 ```bash
-# Automated Azure deployment
-./deploy-azure.sh
+# Automated Azure container deployment
+./deploy-container-to-azure.sh
 
 # Configuration management
 ./azure-config.sh
@@ -187,7 +187,7 @@ Azure App Service provides enterprise-grade hosting with automatic scaling, inte
    az login
    
    # Deploy the application
-   ./deploy-azure.sh
+   ./deploy-container-to-azure.sh
    ```
 
 3. **Manage your deployment:**
@@ -211,7 +211,7 @@ Azure App Service provides enterprise-grade hosting with automatic scaling, inte
 
 ### **📊 GitHub Actions CI/CD**
 
-Automated deployment pipeline is configured in `.github/workflows/azure-deploy.yml`:
+Automated deployment pipeline is configured in `.github/workflows/deploy-azure-container.yml`:
 
 1. **Set up GitHub Secrets:**
    - `AZURE_OPENAI_ENDPOINT`
