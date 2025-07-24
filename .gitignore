@@ -242,6 +242,11 @@ mimir-api-deploy.zip
 
 # Azure specific
 .azure/
+LogFiles/
+webapp_logs*.zip
+latest_logs.zip
+test_logs.zip
+final_logs.zip
 
 # Temporary files
 *~

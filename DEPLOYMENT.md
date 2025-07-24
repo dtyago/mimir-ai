@@ -1,10 +1,8 @@
 # Mimir API Deployment Guide
 
-## 🚀 Starting the Application
+## 🚀 Quick Start
 
-### Universal Startup Script
-
-The project now uses a single universal startup script that automatically detects your environment:
+### Local Development
 
 ```bash
 # Start the application (auto-detects environment)
@@ -17,17 +15,96 @@ The project now uses a single universal startup script that automatically detect
 - **Production**: Set `ENVIRONMENT=production` or `APP_ENV=production`
 - **Development**: Default fallback for local development
 
-### Environment-Specific Options
-
-#### Option 1: DevContainer (Recommended)
-```bash
-# In VS Code DevContainer (auto-detected)
-./start.sh
-```
 ⚠️ **Important:** Use local DevContainer only. **GitHub Codespaces is NOT supported** due to incompatible SQLite version (3.34.1 vs required 3.35.0+).
 
-#### Option 2: Docker Compose
+### Docker Compose
+
 ```bash
+# Start with Docker Compose
+docker-compose up --build
+```
+
+## 🌐 Azure App Service Deployment
+
+### Prerequisites
+
+1. **Azure CLI** installed and logged in:
+   ```bash
+   az login
+   ```
+
+2. **Environment Variables** - Create `.env.azure` file:
+   ```bash
+   # Azure OpenAI Configuration
+   AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+   AZURE_OPENAI_API_KEY=your-api-key
+   AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
+   AZURE_OPENAI_API_VERSION=2024-12-01-preview
+
+   # Security
+   EC_ADMIN_PWD=$2b$12$qAojdT74m9LT6/8BWhTkUOh7NPPqfc5tuaR7.KjvY0/2zfsyHrB/W
+   JWT_SECRET_KEY=your-jwt-secret-key
+   ```
+
+### One-Click Deployment
+
+```bash
+# Deploy to Azure (creates or updates existing deployment)
+./deploy-container-to-azure.sh
+```
+
+**What this script does:**
+- ✅ Auto-detects existing Azure Container Registry or creates new one
+- ✅ Builds Docker image using Azure Container Registry build service
+- ✅ Creates or updates Azure App Service (Basic B1 tier)
+- ✅ Configures all environment variables from `.env.azure`
+- ✅ Sets up container authentication and networking
+- ✅ Applies Azure-specific optimizations
+
+**Configuration:**
+Update the script variables at the top for your deployment:
+```bash
+RESOURCE_GROUP="your-resource-group"  # Update this
+APP_NAME="your-app-name"             # Update this
+LOCATION="Canada Central"            # Update this
+```
+
+### Manual Deployment Steps
+
+If you prefer manual control:
+
+1. **Build and Push Image:**
+   ```bash
+   # Using Azure Container Registry build service (no local Docker needed)
+   az acr build --registry your-acr-name --image mimir-api:latest .
+   ```
+
+2. **Update App Service:**
+   ```bash
+   az webapp config container set \
+     --name your-app-name \
+     --resource-group your-rg \
+     --container-image-name your-acr.azurecr.io/mimir-api:latest
+   ```
+
+3. **Configure Environment Variables:**
+   ```bash
+   az webapp config appsettings set \
+     --name your-app-name \
+     --resource-group your-rg \
+     --settings @.env.azure
+   ```
+
+### Deployment from VS Code DevContainer
+
+✅ **Yes, you can deploy directly from VS Code DevContainer!**
+
+The Azure Container Registry build service allows you to build and deploy without having Docker installed locally:
+
+```bash
+# This works from VS Code DevContainer
+az acr build --registry your-acr-name --image mimir-api:latest .
+```
 # Docker Compose deployment
 docker-compose up --build
 ```

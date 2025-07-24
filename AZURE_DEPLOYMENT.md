@@ -1,22 +1,36 @@
 # Azure App Service Deployment Guide for Mimir API
 
-## 🚀 Azure App Service Deployment
+> ⚡ **Quick Deployment:** This guide has been consolidated into the main deployment documentation.
 
-### Prerequisites
-- Azure subscription
-- Azure CLI installed
-- Azure OpenAI resource already created
-- GitHub repository (for CI/CD)
+## 🚀 One-Click Azure Deployment
 
-## 📋 Step-by-Step Deployment
-
-### 1. Create Azure App Service
 ```bash
-# Login to Azure
-az login
+# 1. Configure your environment variables in .env.azure
+# 2. Run the deployment script
+./deploy-container-to-azure.sh
+```
 
-# Create resource group
-az group create --name rg-mimir-api --location "East US"
+For detailed instructions, see: **[DEPLOYMENT.md](./DEPLOYMENT.md#-azure-app-service-deployment)**
+
+## ✅ What the automated script does:
+
+- Auto-detects existing Azure Container Registry or creates new one
+- Builds Docker image using Azure Container Registry build service (no local Docker needed)
+- Creates or updates Azure App Service with Basic B1 tier
+- Configures all environment variables from `.env.azure`
+- Sets up container authentication and networking
+- Applies Azure-specific optimizations
+
+## � Manual Steps
+
+If you need manual control over the deployment process, see the detailed manual steps in [DEPLOYMENT.md](./DEPLOYMENT.md#manual-deployment-steps).
+
+## 📖 Key Benefits
+
+✅ **Deploy from VS Code DevContainer** - No local Docker installation required  
+✅ **Automatic Updates** - Script detects existing resources and updates them  
+✅ **Production Ready** - Includes all necessary Azure App Service configurations  
+✅ **Secure** - Uses Azure Container Registry with proper authentication
 
 # Create App Service Plan (Linux)
 az appservice plan create \

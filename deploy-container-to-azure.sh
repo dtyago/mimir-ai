@@ -1,39 +1,79 @@
 #!/bin/bash
 # Deploy Mimir API container to Azure App Service
+# Updated based on successful deployment experience
 
 set -e
 
-# Configuration
-RESOURCE_GROUP="rg-mimir-api"
+# Check dependencies
+echo "🔍 Checking dependencies..."
+if ! command -v az &> /dev/null; then
+    echo "❌ Azure CLI is required but not installed."
+    echo "   Install from: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo "❌ jq is required but not installed."
+    echo "   Install with: apt-get install jq (Linux) or brew install jq (macOS)"
+    exit 1
+fi
+
+# Verify Azure login
+if ! az account show &> /dev/null; then
+    echo "❌ Not logged in to Azure. Please run: az login"
+    exit 1
+fi
+
+echo "✅ All dependencies satisfied"
+
+# Configuration - Update these values for your deployment
+RESOURCE_GROUP="dtyago-rg"  # Use existing resource group or create new
 APP_NAME="mimir-api-prod"
-LOCATION="East US"
-ACR_NAME="mimirapi$(date +%s)"  # Unique ACR name
+LOCATION="Canada Central"
+ACR_NAME=""  # Will be auto-detected or you can specify existing ACR
 IMAGE_NAME="mimir-api"
 TAG="latest"
 
 echo "🚀 Deploying Mimir API container to Azure App Service"
 echo "Resource Group: $RESOURCE_GROUP"
 echo "App Name: $APP_NAME"
-echo "ACR Name: $ACR_NAME"
+echo "Location: $LOCATION"
 echo "========================================="
 
-# 1. Create resource group
-echo "📁 Creating resource group..."
+# 1. Ensure resource group exists
+echo "📁 Ensuring resource group exists..."
 az group create --name $RESOURCE_GROUP --location "$LOCATION"
 
-# 2. Create Azure Container Registry
-echo "🏗️ Creating Azure Container Registry..."
-az acr create \
-    --resource-group $RESOURCE_GROUP \
-    --name $ACR_NAME \
-    --sku Basic \
-    --admin-enabled false
+# 2. Auto-detect existing ACR or create new one
+echo "🔍 Checking for existing Azure Container Registry..."
+ACR_LIST=$(az acr list --resource-group $RESOURCE_GROUP --query "[].name" --output tsv)
 
-# 3. Get ACR server (no admin credentials needed for managed identity)
-echo "🔑 Getting ACR server..."
+if [ -n "$ACR_LIST" ]; then
+    ACR_NAME=$(echo $ACR_LIST | head -n1)
+    echo "✅ Found existing ACR: $ACR_NAME"
+else
+    ACR_NAME="mimirapi$(date +%s)"
+    echo "🏗️ Creating new Azure Container Registry: $ACR_NAME"
+    az acr create \
+        --resource-group $RESOURCE_GROUP \
+        --name $ACR_NAME \
+        --sku Basic \
+        --admin-enabled true
+fi
+
+# Ensure admin is enabled for simple authentication
+echo "🔧 Enabling admin access on ACR..."
+az acr update --name $ACR_NAME --admin-enabled true
+
+# 3. Get ACR server and credentials
+echo "🔑 Getting ACR server and credentials..."
 ACR_SERVER=$(az acr show --name $ACR_NAME --resource-group $RESOURCE_GROUP --query "loginServer" --output tsv)
+ACR_CREDENTIALS=$(az acr credential show --name $ACR_NAME --query '{username:username, password:passwords[0].value}' --output json)
+ACR_USERNAME=$(echo $ACR_CREDENTIALS | jq -r '.username')
+ACR_PASSWORD=$(echo $ACR_CREDENTIALS | jq -r '.password')
 
 echo "ACR Server: $ACR_SERVER"
+echo "ACR Username: $ACR_USERNAME"
 
 # 4. Build and push image to ACR
 echo "🐳 Building and pushing Docker image..."
@@ -42,43 +82,62 @@ az acr build \
     --image $IMAGE_NAME:$TAG \
     .
 
-# 5. Create App Service Plan
-echo "📋 Creating App Service Plan..."
-az appservice plan create \
-    --name plan-$APP_NAME \
-    --resource-group $RESOURCE_GROUP \
-    --is-linux \
-    --sku B1
+# 5. Check if App Service already exists
+echo "� Checking if App Service exists..."
+APP_EXISTS=$(az webapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query "name" --output tsv 2>/dev/null || echo "")
 
-# 6. Create Web App with container (using the image we just built)
-echo "🌐 Creating Web App..."
-az webapp create \
-    --resource-group $RESOURCE_GROUP \
-    --plan plan-$APP_NAME \
-    --name $APP_NAME \
-    --deployment-container-image-name $ACR_SERVER/$IMAGE_NAME:$TAG \
-    --assign-identity
+if [ -n "$APP_EXISTS" ]; then
+    echo "✅ Found existing App Service: $APP_NAME"
+    echo "🔄 Updating existing deployment..."
+    
+    # Update container configuration
+    az webapp config container set \
+        --name $APP_NAME \
+        --resource-group $RESOURCE_GROUP \
+        --container-image-name $ACR_SERVER/$IMAGE_NAME:$TAG \
+        --container-registry-url https://$ACR_SERVER \
+        --container-registry-user $ACR_USERNAME \
+        --container-registry-password $ACR_PASSWORD
+    
+    # Disable managed identity for ACR (use credentials instead)
+    az webapp config set \
+        --name $APP_NAME \
+        --resource-group $RESOURCE_GROUP \
+        --generic-configurations '{"acrUseManagedIdentityCreds": false}'
+        
+else
+    echo "🏗️ Creating new App Service..."
+    
+    # Create App Service Plan
+    echo "📋 Creating App Service Plan..."
+    PLAN_EXISTS=$(az appservice plan show --name plan-$APP_NAME --resource-group $RESOURCE_GROUP --query "name" --output tsv 2>/dev/null || echo "")
+    
+    if [ -z "$PLAN_EXISTS" ]; then
+        az appservice plan create \
+            --name plan-$APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --is-linux \
+            --sku B1
+    fi
 
-# 7. Configure managed identity for ACR access
-echo "🔐 Configuring managed identity for ACR access..."
+    # Create Web App with container
+    echo "🌐 Creating Web App..."
+    az webapp create \
+        --resource-group $RESOURCE_GROUP \
+        --plan plan-$APP_NAME \
+        --name $APP_NAME \
+        --deployment-container-image-name $ACR_SERVER/$IMAGE_NAME:$TAG
+    
+    # Configure container with credentials (not managed identity)
+    az webapp config container set \
+        --name $APP_NAME \
+        --resource-group $RESOURCE_GROUP \
+        --container-registry-url https://$ACR_SERVER \
+        --container-registry-user $ACR_USERNAME \
+        --container-registry-password $ACR_PASSWORD
+fi
 
-# Get the App Service principal ID
-PRINCIPAL_ID=$(az webapp identity show --name $APP_NAME --resource-group $RESOURCE_GROUP --query principalId --output tsv)
-
-# Assign ACR pull role to the managed identity
-az role assignment create \
-    --assignee $PRINCIPAL_ID \
-    --role AcrPull \
-    --scope /subscriptions/$(az account show --query id --output tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME
-
-# Configure the container with managed identity
-az webapp config container set \
-    --name $APP_NAME \
-    --resource-group $RESOURCE_GROUP \
-    --docker-custom-image-name $ACR_SERVER/$IMAGE_NAME:$TAG \
-    --docker-registry-server-url https://$ACR_SERVER
-
-# 8. Configure application settings (environment variables)
+# 6. Configure application settings (environment variables)
 echo "⚙️ Configuring application settings..."
 
 # Check if .env.azure exists and load it
@@ -141,28 +200,45 @@ az webapp config appsettings set \
     APP_ENV="${APP_ENV:-production}" \
     APP_HOST="${APP_HOST:-0.0.0.0}" \
     APP_PORT="${APP_PORT:-8000}" \
-    DEBUG="${DEBUG:-false}" \
-    AUTO_RELOAD="${AUTO_RELOAD:-false}" \
+    CORS_ORIGINS="https://$APP_NAME.azurewebsites.net" \
+    L2_FACE_THRESHOLD="${L2_FACE_THRESHOLD:-0.85}" \
+    SESSION_VALIDITY_MINUTES="${SESSION_VALIDITY_MINUTES:-1440}" \
+    MAX_FILE_SIZE="${MAX_FILE_SIZE:-50000000}" \
+    ALLOWED_FILE_TYPES="${ALLOWED_FILE_TYPES:-application/pdf}" \
+    TEMP_UPLOAD_DIR="${TEMP_UPLOAD_DIR:-/tmp/uploads}" \
     USER_DATA_DIR="${USER_DATA_DIR:-/tmp/data}" \
     UPLOAD_DIR="${UPLOAD_DIR:-/tmp/uploads}" \
-    LOG_FILE="${LOG_FILE:-/tmp/logs/mimir-api.log}" \
+    FACE_TEMP_DIR="${FACE_TEMP_DIR:-/tmp/face_images}" \
     LOG_LEVEL="${LOG_LEVEL:-INFO}" \
-    CORS_ORIGINS="${CORS_ORIGINS:-}" \
+    LOG_FILE="${LOG_FILE:-/tmp/logs/mimir-api.log}" \
+    SCM_DO_BUILD_DURING_DEPLOYMENT="true" \
+    PYTHONPATH="/home/site/wwwroot" \
+    PORT="8000" \
     WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" \
-    WEBSITES_PORT="8000"
+    WEBSITES_PORT="8000" \
+    WEBSITES_CONTAINER_START_TIME_LIMIT="1800" \
+    ENVIRONMENT="azure"
 
-# 9. Configure startup command
-echo "🚀 Configuring startup command..."
+# 7. Configure container startup
+echo "🚀 Configuring container startup..."
 az webapp config set \
     --name $APP_NAME \
     --resource-group $RESOURCE_GROUP \
     --startup-file "./start.sh"
 
+# 8. Restart the app to apply all changes
+echo "🔄 Restarting app to apply changes..."
+az webapp restart --name $APP_NAME --resource-group $RESOURCE_GROUP
+
 echo "✅ Deployment complete!"
+echo ""
 echo "🌐 Your app URL: https://$APP_NAME.azurewebsites.net"
+echo "📖 API Documentation: https://$APP_NAME.azurewebsites.net/docs"
 echo ""
 echo "🔑 Environment variables configured from .env.azure"
 echo "📊 Check deployment status:"
 echo "   az webapp browse --name $APP_NAME --resource-group $RESOURCE_GROUP"
 echo "📋 View logs:"
 echo "   az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP"
+echo "🔧 Download logs:"
+echo "   az webapp log download --name $APP_NAME --resource-group $RESOURCE_GROUP --log-file webapp_logs.zip"
