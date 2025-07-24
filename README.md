@@ -229,6 +229,10 @@ cd mimir-api
 # Configure Azure credentials
 az login
 
+# IMPORTANT: Set up secure environment
+cp .env.azure.example .env.azure
+# Edit .env.azure with your actual Azure OpenAI credentials and secure admin password
+
 # Full deployment with environment setup
 ./deploy-container-to-azure.sh
 
@@ -236,6 +240,12 @@ az login
 ./qd.sh restart   # Restart existing container (~30 seconds)
 ./qd.sh rebuild   # Rebuild with caching (~3-5 minutes)
 ```
+
+**Security Requirements:**
+- **Never commit `.env.azure`** - Contains sensitive production secrets
+- **Generate secure admin password**: Use bcrypt to hash your chosen password
+- **Use Azure Key Vault** for production credential management (recommended)
+- **Rotate secrets regularly** in production environments
 
 **Deployment Strategy:**
 - **Separate Dockerfiles**: `Dockerfile.azure` optimized for Azure App Service
