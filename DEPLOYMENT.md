@@ -49,7 +49,7 @@ docker-compose up --build
 ### One-Click Deployment
 
 ```bash
-# Deploy to Azure (creates or updates existing deployment)
+# Full deployment (creates or updates existing deployment)
 ./deploy-container-to-azure.sh
 ```
 
@@ -60,6 +60,25 @@ docker-compose up --build
 - ✅ Configures all environment variables from `.env.azure`
 - ✅ Sets up container authentication and networking
 - ✅ Applies Azure-specific optimizations
+
+### Quick Deployment for Development
+
+For continuous development and small changes:
+
+```bash
+# Quick deploy for small changes (faster)
+./qd.sh
+```
+
+**What this script does:**
+- ✅ Builds and pushes Docker image using Azure Container Registry
+- ✅ Restarts App Service to pull new image
+- ✅ Tests deployment health
+- ✅ Faster deployment (~2-3 minutes vs full deployment)
+
+**When to use which:**
+- Use `./qd.sh` for code changes, bug fixes, small features
+- Use `./deploy-container-to-azure.sh` for environment variable changes, major updates, or initial deployment
 
 **Configuration:**
 Update the script variables at the top for your deployment:
