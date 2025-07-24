@@ -29,7 +29,7 @@ echo "✅ All dependencies satisfied"
 # Configuration - Update these values for your deployment
 RESOURCE_GROUP="dtyago-rg"  # Use existing resource group or create new
 APP_NAME="mimir-api-prod"
-LOCATION="Canada Central"
+LOCATION="Canada Central"  # Correct location as confirmed by user
 ACR_NAME=""  # Will be auto-detected or you can specify existing ACR
 IMAGE_NAME="mimir-api"
 TAG="latest"
@@ -40,9 +40,19 @@ echo "App Name: $APP_NAME"
 echo "Location: $LOCATION"
 echo "========================================="
 
-# 1. Ensure resource group exists
-echo "📁 Ensuring resource group exists..."
-az group create --name $RESOURCE_GROUP --location "$LOCATION"
+# 1. Check if resource group exists (don't try to create if it exists)
+echo "📁 Checking if resource group exists..."
+RG_EXISTS=$(az group show --name $RESOURCE_GROUP --query "name" --output tsv 2>/dev/null || echo "")
+
+if [ -z "$RG_EXISTS" ]; then
+    echo "🏗️ Creating resource group..."
+    az group create --name $RESOURCE_GROUP --location "$LOCATION"
+else
+    echo "✅ Resource group $RESOURCE_GROUP already exists"
+    # Get the actual location of the existing resource group
+    ACTUAL_LOCATION=$(az group show --name $RESOURCE_GROUP --query "location" --output tsv)
+    echo "📍 Resource group location: $ACTUAL_LOCATION"
+fi
 
 # 2. Auto-detect existing ACR or create new one
 echo "🔍 Checking for existing Azure Container Registry..."
@@ -80,6 +90,7 @@ echo "🐳 Building and pushing Docker image..."
 az acr build \
     --registry $ACR_NAME \
     --image $IMAGE_NAME:$TAG \
+    --file Dockerfile.azure \
     .
 
 # 5. Check if App Service already exists
@@ -219,14 +230,7 @@ az webapp config appsettings set \
     WEBSITES_CONTAINER_START_TIME_LIMIT="1800" \
     ENVIRONMENT="azure"
 
-# 7. Configure container startup
-echo "🚀 Configuring container startup..."
-az webapp config set \
-    --name $APP_NAME \
-    --resource-group $RESOURCE_GROUP \
-    --startup-file "./start.sh"
-
-# 8. Restart the app to apply all changes
+# 7. Restart the app to apply all changes
 echo "🔄 Restarting app to apply changes..."
 az webapp restart --name $APP_NAME --resource-group $RESOURCE_GROUP
 

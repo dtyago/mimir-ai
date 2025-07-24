@@ -59,6 +59,8 @@ RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 COPY app/ ./app/
 COPY static/ ./static/
 COPY start.sh ./
+COPY startup.py ./
+COPY gunicorn_conf.py ./
 COPY .env* ./
 
 # Create necessary directories with proper permissions
@@ -67,18 +69,18 @@ RUN mkdir -p data/chromadb data/uploads data/tmp data/logs tmp/uploads && \
     chmod 700 data/chromadb && \
     chmod +x start.sh
 
-# Create non-root user for security
-RUN useradd --create-home --shell /bin/bash mimir && \
-    chown -R mimir:mimir /app
-USER mimir
+# For Azure App Service compatibility, don't create custom user
+# Azure App Service handles user management differently
+# But ensure proper permissions for the default user
+RUN chown -R $(whoami):$(whoami) /app || true
 
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check - use a more compatible approach
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
+# Don't set ENVIRONMENT here - let Azure App Service control it
 # Default command for production
-ENV ENVIRONMENT=production
-CMD ["./start.sh"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-c", "/app/gunicorn_conf.py", "startup:app"]

@@ -229,9 +229,19 @@ cd mimir-api
 # Configure Azure credentials
 az login
 
-# Deploy with managed identity security
+# Full deployment with environment setup
 ./deploy-container-to-azure.sh
+
+# Quick deployment options (after initial setup)
+./qd.sh restart   # Restart existing container (~30 seconds)
+./qd.sh rebuild   # Rebuild with caching (~3-5 minutes)
 ```
+
+**Deployment Strategy:**
+- **Separate Dockerfiles**: `Dockerfile.azure` optimized for Azure App Service
+- **Quick Deploy**: Fast iteration with `qd.sh` for development cycles
+- **Full Deploy**: Complete environment setup with `deploy-container-to-azure.sh`
+- **Layer Caching**: Optimized Docker builds for faster deployments
 
 **Features:**
 - Automatic scaling and load balancing
@@ -239,19 +249,23 @@ az login
 - Application Insights monitoring
 - SSL/TLS termination
 - Custom domain support
+- Health check endpoints with startup probes
 
 ### Docker Production
 For self-hosted production deployment:
 
 ```bash
-# Production Docker build
-docker build -t mimir-api .
+# Production Docker build (Azure-optimized)
+docker build -f Dockerfile.azure -t mimir-api-prod .
 docker run -d \
   --name mimir-api \
   -p 8000:8000 \
   --env-file .env.production \
   --restart unless-stopped \
-  mimir-api
+  mimir-api-prod
+
+# Development Docker build (DevContainer)
+docker build -f Dockerfile -t mimir-api-dev .
 ```
 
 ## 🔒 Security Features
@@ -285,11 +299,13 @@ test_azure_openai()
 
 ## 🛠️ Development Tools
 
-- **Universal Startup**: `./start.sh` auto-detects and configures environment
-- **Azure Deployment**: `./deploy-container-to-azure.sh` automated cloud deployment  
-- **Health Monitoring**: Built-in `/health` endpoint for system status
+- **Universal Startup**: `./start.sh` auto-detects and configures environment (DevContainer/local)
+- **Quick Azure Deploy**: `./qd.sh restart|rebuild` for fast Azure iteration cycles
+- **Full Azure Deploy**: `./deploy-container-to-azure.sh` for complete environment setup
+- **Health Monitoring**: Built-in `/health` endpoint for system status and diagnostics
 - **Hot Reload**: Development mode with automatic code reloading
 - **Containerized Dev**: DevContainer for consistent development environment
+- **Dual Docker Strategy**: Separate optimized containers for development vs production
 
 ## 📚 Documentation
 
@@ -342,6 +358,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **🚀 Ready to Deploy!** 
 
-- **Development**: `./start.sh`
-- **Production**: `./deploy-container-to-azure.sh`
-- **Health Check**: `http://localhost:8000/health`
+- **Development**: `./start.sh` (local/DevContainer)
+- **Quick Azure Deploy**: `./qd.sh rebuild` (fast iteration)
+- **Full Azure Deploy**: `./deploy-container-to-azure.sh` (complete setup)
+- **Health Check**: `http://localhost:8000/health` or your Azure URL

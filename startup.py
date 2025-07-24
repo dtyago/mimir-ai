@@ -30,14 +30,24 @@ def get_application():
         logger.info("Setting up SQLite compatibility...")
         from app.utils.sqlite_compat import setup_sqlite_compatibility
         setup_sqlite_compatibility()
+        logger.info("SQLite compatibility setup complete")
         
         # Import and return the FastAPI app
+        logger.info("Loading FastAPI application...")
         from app.dependencies import app
         logger.info("FastAPI application loaded successfully")
         return app
         
+    except ImportError as e:
+        logger.error(f"Import error when loading application: {str(e)}")
+        logger.error(f"Current working directory: {os.getcwd()}")
+        logger.error(f"Python path: {sys.path}")
+        raise
     except Exception as e:
         logger.error(f"Failed to load application: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
 # For Azure App Service
