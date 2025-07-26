@@ -229,37 +229,59 @@ cd mimir-api
 # Configure Azure credentials
 az login
 
-# IMPORTANT: Set up secure environment
+# Set up environment configuration
 cp .env.azure.example .env.azure
-# Edit .env.azure with your actual Azure OpenAI credentials and secure admin password
+# Edit .env.azure with your Azure settings and credentials
 
-# Full deployment with environment setup
+# One-command deployment
 ./deploy-container-to-azure.sh
-
-# Quick deployment options (after initial setup)
-./qd.sh restart   # Restart existing container (~30 seconds)
-./qd.sh rebuild   # Rebuild with caching (~3-5 minutes)
 ```
 
-**Security Requirements:**
+**What gets configured in `.env.azure`:**
+```bash
+# Azure Deployment Settings
+RESOURCE_GROUP=your-resource-group
+LOCATION="Canada Central"
+APP_NAME=your-app-service-name
+ACR_NAME=your-container-registry  # optional
+
+# Application Settings
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your-api-key
+EC_ADMIN_PWD=your-bcrypt-hashed-password
+JWT_SECRET_KEY=your-jwt-secret
+```
+
+**Deployment Features:**
+- ✅ **Intelligent Resource Management**: Auto-detects existing Azure resources
+- ✅ **Cloud-Based Building**: Uses Azure Container Registry (no local Docker needed)
+- ✅ **Complete Configuration**: Deploys both infrastructure and application settings
+- ✅ **Production Optimized**: Includes health checks, logging, and performance tuning
+- ✅ **Secure by Default**: Proper authentication and environment variable management
+
+**Quick Updates After Initial Deployment:**
+```bash
+# Code changes only (fast)
+./qd.sh rebuild
+
+# Configuration changes (full sync)
+./deploy-container-to-azure.sh
+```
+
+**Security Best Practices:**
 - **Never commit `.env.azure`** - Contains sensitive production secrets
-- **Generate secure admin password**: Use bcrypt to hash your chosen password
-- **Use Azure Key Vault** for production credential management (recommended)
-- **Rotate secrets regularly** in production environments
+- **Generate secure credentials**:
+  ```bash
+  # Admin password hash
+  python -c "import bcrypt; print(bcrypt.hashpw(b'YourPassword123!', bcrypt.gensalt()).decode())"
+  
+  # JWT secret
+  python -c "import secrets; print(secrets.token_urlsafe(64))"
+  ```
+- **Use Azure Key Vault** for additional security in production
+- **Rotate credentials regularly**
 
-**Deployment Strategy:**
-- **Separate Dockerfiles**: `Dockerfile.azure` optimized for Azure App Service
-- **Quick Deploy**: Fast iteration with `qd.sh` for development cycles
-- **Full Deploy**: Complete environment setup with `deploy-container-to-azure.sh`
-- **Layer Caching**: Optimized Docker builds for faster deployments
-
-**Features:**
-- Automatic scaling and load balancing
-- Enterprise security with managed identities
-- Application Insights monitoring
-- SSL/TLS termination
-- Custom domain support
-- Health check endpoints with startup probes
+For detailed Azure deployment instructions, see: **[AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md)**
 
 ### Docker Production
 For self-hosted production deployment:

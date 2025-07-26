@@ -1,288 +1,227 @@
 # Azure App Service Deployment Guide for Mimir API
 
-> ⚡ **Quick Deployment:** This guide has been consolidated into the main deployment documentation.
+This guide covers deploying the Mimir API to Azure App Service using our streamlined deployment script.
 
-## 🚀 One-Click Azure Deployment
+## 🚀 Quick Start
+
+### Prerequisites
+- Azure CLI installed and logged in (`az login`)
+- Access to an Azure subscription
+- VS Code DevContainer environment (recommended)
+
+### One-Command Deployment
 
 ```bash
-# 1. Configure your environment variables in .env.azure
-# 2. Run the deployment script
+# 1. Configure your deployment
+cp .env.azure.example .env.azure
+# Edit .env.azure with your values
+
+# 2. Deploy to Azure
 ./deploy-container-to-azure.sh
 ```
 
-For detailed instructions, see: **[DEPLOYMENT.md](./DEPLOYMENT.md#-azure-app-service-deployment)**
+## ⚙️ Configuration
 
-## ✅ What the automated script does:
+### Step 1: Configure Environment Variables
 
-- Auto-detects existing Azure Container Registry or creates new one
-- Builds Docker image using Azure Container Registry build service (no local Docker needed)
-- Creates or updates Azure App Service with Basic B1 tier
-- Configures all environment variables from `.env.azure`
-- Sets up container authentication and networking
-- Applies Azure-specific optimizations
-
-## � Manual Steps
-
-If you need manual control over the deployment process, see the detailed manual steps in [DEPLOYMENT.md](./DEPLOYMENT.md#manual-deployment-steps).
-
-## 📖 Key Benefits
-
-✅ **Deploy from VS Code DevContainer** - No local Docker installation required  
-✅ **Automatic Updates** - Script detects existing resources and updates them  
-✅ **Production Ready** - Includes all necessary Azure App Service configurations  
-✅ **Secure** - Uses Azure Container Registry with proper authentication
-
-# Create App Service Plan (Linux)
-az appservice plan create \
-    --name plan-mimir-api \
-    --resource-group rg-mimir-api \
-    --is-linux \
-    --sku B1
-
-# Create Web App
-az webapp create \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --plan plan-mimir-api \
-    --runtime "PYTHON:3.12"
-```
-
-### 2. Configure Application Settings
-
-⚠️ **Security Notice**: Never commit secrets to version control. Use Azure App Service Configuration for all sensitive values.
+Copy the example configuration and customize it:
 
 ```bash
-# Set environment variables in Azure App Service
-# IMPORTANT: Replace placeholder values with your actual secrets
-az webapp config appsettings set \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --settings \
-    AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/" \
-    AZURE_OPENAI_API_KEY="your-actual-api-key-here" \
-    AZURE_OPENAI_API_VERSION="2024-12-01-preview" \
-    AZURE_OPENAI_DEPLOYMENT_NAME="your-deployment-name" \
-    CHROMADB_LOC="/tmp/chromadb" \
-    EC_ADMIN_PWD="your-bcrypt-hashed-password-here" \
-    JWT_SECRET_KEY="your-jwt-secret-key-here" \
-    APP_ENV="production" \
-    SCM_DO_BUILD_DURING_DEPLOYMENT="true"
-
-# Configure startup command
-az webapp config set \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --startup-file "gunicorn --bind 0.0.0.0:8000 app.dependencies:app"
+cp .env.azure.example .env.azure
 ```
 
-### 3. Deploy from GitHub (Recommended)
+Edit `.env.azure` with your values:
+
 ```bash
-# Enable GitHub Actions deployment
-az webapp deployment github-actions add \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --repo "https://github.com/dtyago/mimir-api" \
-    --branch main \
-    --runtime python \
-    --runtime-version 3.12
+## Azure Deployment Configuration
+RESOURCE_GROUP=your-resource-group-name
+LOCATION="Canada Central"  # or your preferred region
+APP_NAME=your-app-service-name
+ACR_NAME=your-container-registry-name  # optional, auto-detected if empty
+
+## Azure OpenAI Configuration
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your-api-key
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
+
+## Security Configuration
+EC_ADMIN_PWD=your-bcrypt-hashed-password
+JWT_SECRET_KEY=your-jwt-secret
 ```
 
-### 4. Manual ZIP Deployment (Alternative)
+### Step 2: Generate Security Credentials
+
+Generate a secure admin password hash:
 ```bash
-# Create deployment package
-zip -r mimir-api.zip app/ static/ requirements.txt .env.production
-
-# Deploy ZIP file
-az webapp deployment source config-zip \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --src mimir-api.zip
+python -c "import bcrypt; print(bcrypt.hashpw(b'YourSecurePassword123!', bcrypt.gensalt()).decode())"
 ```
 
-## � Security Best Practices
-
-### Environment Variables Management
-- **✅ DO**: Set all secrets in Azure Portal > App Service > Configuration > Application Settings
-- **✅ DO**: Use Azure Key Vault for highly sensitive data
-- **✅ DO**: Reference `.env.azure.example` for required variables
-- **❌ DON'T**: Commit `.env.azure` with real secrets to version control
-- **❌ DON'T**: Hardcode secrets in deployment scripts
-- **❌ DON'T**: Share API keys in documentation or chat
-
-### Required Application Settings
-Set these in Azure Portal > App Service > Configuration:
-
-| Setting | Example/Description |
-|---------|---------------------|
-| `AZURE_OPENAI_ENDPOINT` | https://your-resource-name.openai.azure.com/ |
-| `AZURE_OPENAI_API_KEY` | Your actual Azure OpenAI API key |
-| `AZURE_OPENAI_API_VERSION` | 2024-12-01-preview |
-| `AZURE_OPENAI_DEPLOYMENT_NAME` | Your model deployment name |
-| `CHROMADB_LOC` | /tmp/chromadb |
-| `EC_ADMIN_PWD` | Bcrypt hashed admin password |
-| `JWT_SECRET_KEY` | Cryptographically secure random key |
-| `CORS_ORIGINS` | https://your-app-name.azurewebsites.net |
-
-## 🔧 Configuration Files
-
-### Application Settings (Environment Variables)
-Use the table above to configure all required environment variables in Azure Portal.
-| `JWT_SECRET_KEY` | Your JWT secret |
-| `APP_ENV` | production |
-| `SCM_DO_BUILD_DURING_DEPLOYMENT` | true |
-
-### Startup Command
+Generate a JWT secret key:
 ```bash
-gunicorn --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 4 --timeout 120 app.dependencies:app
+python -c "import secrets; print(secrets.token_urlsafe(64))"
 ```
 
-## 📊 Monitoring & Logging
+## 🛠️ Deployment Process
 
-### Enable Application Insights
+### Automated Deployment
+
+The `deploy-container-to-azure.sh` script handles everything:
+
 ```bash
-# Create Application Insights
-az monitor app-insights component create \
-    --app mimir-api-insights \
-    --location "East US" \
-    --resource-group rg-mimir-api
-
-# Link to App Service
-az webapp config appsettings set \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --settings APPLICATIONINSIGHTS_CONNECTION_STRING="your-connection-string"
+./deploy-container-to-azure.sh
 ```
 
-### View Logs
+**What it does:**
+1. ✅ Validates configuration and dependencies
+2. ✅ Creates/detects Azure Resource Group
+3. ✅ Creates/detects Azure Container Registry
+4. ✅ Builds Docker image using Azure Container Registry (cloud-based)
+5. ✅ Creates/updates Azure App Service
+6. ✅ Configures all environment variables
+7. ✅ Deploys the container and restarts the service
+
+**No local Docker required** - everything builds in Azure!
+
+### What Gets Created
+
+The deployment script creates/manages these Azure resources:
+
+- **Resource Group**: Contains all your resources
+- **App Service Plan**: Linux-based, B1 SKU (Basic tier)
+- **App Service**: Your web application
+- **Container Registry**: Stores your Docker images
+
+## 🎯 Key Features
+
+### Intelligent Resource Management
+- **Auto-detection**: Finds existing resources to avoid duplicates
+- **Smart Updates**: Updates existing deployments seamlessly
+- **Validation**: Checks configuration before deployment
+
+### Security Best Practices
+- **Container Registry**: Private registry with admin credentials
+- **Environment Variables**: Securely configured in Azure App Service
+- **Bcrypt Hashing**: Admin passwords are properly hashed
+- **JWT Tokens**: Secure session management
+
+### Production Ready
+- **Health Checks**: Built-in container health monitoring
+- **Logging**: Azure App Service log streams
+- **Performance**: Optimized startup and runtime configuration
+- **Scalability**: Easy to scale up/out as needed
+
+## 🔍 Monitoring & Troubleshooting
+
+### View Application Logs
 ```bash
-# Stream logs
-az webapp log tail --name mimir-api-prod --resource-group rg-mimir-api
+# Stream live logs
+az webapp log tail --name your-app-name --resource-group your-resource-group
 
-# Download logs
-az webapp log download --name mimir-api-prod --resource-group rg-mimir-api
+# Download log files
+az webapp log download --name your-app-name --resource-group your-resource-group --log-file webapp_logs.zip
 ```
 
-## 🔒 Security Considerations
-
-### Key Vault Integration (Recommended)
+### Check Deployment Status
 ```bash
-# Create Key Vault
-az keyvault create \
-    --name kv-mimir-api \
-    --resource-group rg-mimir-api \
-    --location "East US"
+# Open app in browser
+az webapp browse --name your-app-name --resource-group your-resource-group
 
-# Store secrets
-az keyvault secret set --vault-name kv-mimir-api --name "AzureOpenAIKey" --value "your-api-key"
-az keyvault secret set --vault-name kv-mimir-api --name "JWTSecret" --value "your-jwt-secret"
-
-# Enable managed identity
-az webapp identity assign --name mimir-api-prod --resource-group rg-mimir-api
-
-# Grant Key Vault access
-az keyvault set-policy \
-    --name kv-mimir-api \
-    --object-id $(az webapp identity show --name mimir-api-prod --resource-group rg-mimir-api --query principalId -o tsv) \
-    --secret-permissions get list
+# Check app service status
+az webapp show --name your-app-name --resource-group your-resource-group --query "state"
 ```
-
-## 🎯 Production Optimizations
-
-### Scaling Configuration
-```bash
-# Enable auto-scaling
-az monitor autoscale create \
-    --name mimir-api-autoscale \
-    --resource-group rg-mimir-api \
-    --resource mimir-api-prod \
-    --min-count 1 \
-    --max-count 5 \
-    --count 2
-
-# Add CPU scaling rule
-az monitor autoscale rule create \
-    --name cpu-high \
-    --resource-group rg-mimir-api \
-    --autoscale-name mimir-api-autoscale \
-    --condition "Percentage CPU > 70 avg 5m" \
-    --scale out 1
-```
-
-### Custom Domain & SSL
-```bash
-# Add custom domain
-az webapp config hostname add \
-    --webapp-name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --hostname "mimir-api.yourdomain.com"
-
-# Enable SSL
-az webapp config ssl bind \
-    --name mimir-api-prod \
-    --resource-group rg-mimir-api \
-    --certificate-thumbprint "your-cert-thumbprint" \
-    --ssl-type SNI
-```
-
-## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Build Failures**
-   - Check `requirements.txt` for conflicting versions
-   - Verify Python version compatibility
-   - Check build logs in Deployment Center
+#### Container Won't Start
+- Check environment variables are set correctly
+- Verify Docker image was built successfully
+- Review container logs in Azure Portal
 
-2. **Startup Issues**
-   - Verify startup command syntax
-   - Check application logs
-   - Ensure all environment variables are set
+#### Authentication Issues
+- Verify Azure OpenAI credentials
+- Check admin password hash is correct
+- Ensure JWT secret is properly configured
 
-3. **Performance Issues**
-   - Monitor CPU and memory usage
-   - Adjust worker count based on load
-   - Enable Application Insights for detailed metrics
+#### Performance Issues
+- Consider scaling up to higher SKU (S1, P1V2, etc.)
+- Monitor resource usage in Azure Portal
+- Check for memory/CPU limits
 
-### Debugging Commands
+## 🔄 Updates & Maintenance
+
+### Quick Updates (Code Only)
+If you only changed application code and not environment variables:
+
 ```bash
-# Check app status
-az webapp show --name mimir-api-prod --resource-group rg-mimir-api --query state
-
-# Restart app
-az webapp restart --name mimir-api-prod --resource-group rg-mimir-api
-
-# Check configuration
-az webapp config appsettings list --name mimir-api-prod --resource-group rg-mimir-api
+# Quick rebuild and redeploy container
+./qd.sh rebuild
 ```
 
-## 📈 Cost Optimization
+### Full Updates (Code + Configuration)
+If you changed environment variables or configuration:
 
-### Recommended Pricing Tiers
-- **Development**: Free (F1) or Basic (B1)
-- **Production**: Standard (S1) or Premium (P1v2)
-- **High Traffic**: Premium (P2v2) or higher
-
-### Cost Monitoring
 ```bash
-# Set up cost alerts
-az consumption budget create \
-    --amount 100 \
-    --budget-name mimir-api-budget \
-    --time-grain Monthly \
-    --time-period-start-date "2025-01-01" \
-    --time-period-end-date "2025-12-31"
+# Full deployment with environment sync
+./deploy-container-to-azure.sh
 ```
 
-## 🎊 Final Checklist
+### Configuration Changes Only
+If you only changed environment variables:
 
-- [ ] Azure App Service created
-- [ ] Environment variables configured
-- [ ] GitHub Actions deployment set up
-- [ ] Application Insights enabled
-- [ ] Key Vault integration (optional)
-- [ ] Custom domain configured (optional)
-- [ ] SSL certificate enabled
-- [ ] Auto-scaling configured
-- [ ] Cost monitoring enabled
-- [ ] Health checks configured
-- [ ] Backup strategy implemented
+```bash
+# Just update configuration (faster than full deployment)
+./deploy-container-to-azure.sh
+# The script detects existing resources and only updates settings
+```
+
+## 🔐 Security Considerations
+
+### Environment Variables
+- Never commit `.env.azure` to version control
+- Use strong, unique passwords
+- Rotate credentials regularly
+- Use Azure Key Vault for additional security
+
+### Network Security
+- Consider using Private Endpoints for production
+- Configure custom domains with SSL certificates
+- Set up IP restrictions if needed
+
+### Access Control
+- Use Azure AD for team access
+- Set up proper RBAC roles
+- Monitor access logs
+
+## 📊 Cost Optimization
+
+### App Service Plan Sizing
+- **B1 Basic**: Good for development/testing ($13-15/month)
+- **S1 Standard**: Production workloads ($56-70/month)
+- **P1V2 Premium**: High-performance applications ($146-182/month)
+
+### Container Registry
+- **Basic**: Sufficient for most use cases ($5/month)
+- Includes 10 GB storage and unlimited private repositories
+
+### Tips
+- Scale down during off-hours
+- Use deployment slots for zero-downtime updates
+- Monitor usage with Azure Cost Management
+
+## 🚀 Next Steps
+
+After successful deployment:
+
+1. **Access your application**: `https://your-app-name.azurewebsites.net`
+2. **Admin login**: `/admin` with username `admin` and your configured password
+3. **API documentation**: `/docs` for interactive API explorer
+4. **Set up monitoring**: Configure Application Insights
+5. **Custom domain**: Add your own domain name
+6. **SSL certificate**: Enable HTTPS with custom domains
+
+## 📚 Additional Resources
+
+- [Azure App Service Documentation](https://docs.microsoft.com/en-us/azure/app-service/)
+- [Azure Container Registry Documentation](https://docs.microsoft.com/en-us/azure/container-registry/)
+- [Mimir API Documentation](./README.md)
+- [Manual Deployment Steps](./DEPLOYMENT.md)

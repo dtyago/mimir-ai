@@ -33,16 +33,28 @@ docker-compose up --build
    az login
    ```
 
-2. **Environment Variables** - Create `.env.azure` file:
+2. **Environment Configuration** - Create `.env.azure` file:
    ```bash
+   cp .env.azure.example .env.azure
+   # Edit with your values
+   ```
+
+   **Required Configuration:**
+   ```bash
+   # Azure Deployment Settings
+   RESOURCE_GROUP=your-resource-group
+   LOCATION="Canada Central"
+   APP_NAME=your-app-service-name
+   ACR_NAME=your-container-registry  # optional, auto-detected if empty
+
    # Azure OpenAI Configuration
    AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
    AZURE_OPENAI_API_KEY=your-api-key
    AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
    AZURE_OPENAI_API_VERSION=2024-12-01-preview
 
-   # Security
-   EC_ADMIN_PWD=$2b$12$qAojdT74m9LT6/8BWhTkUOh7NPPqfc5tuaR7.KjvY0/2zfsyHrB/W
+   # Security Configuration
+   EC_ADMIN_PWD=your-bcrypt-hashed-password
    JWT_SECRET_KEY=your-jwt-secret-key
    ```
 
@@ -54,6 +66,7 @@ docker-compose up --build
 ```
 
 **What this script does:**
+- ✅ Reads configuration from `.env.azure` (deployment and application settings)
 - ✅ Auto-detects existing Azure Container Registry or creates new one
 - ✅ Builds Docker image using Azure Container Registry build service
 - ✅ Creates or updates Azure App Service (Basic B1 tier)
@@ -77,16 +90,20 @@ For continuous development and small changes:
 - ✅ Faster deployment (~2-3 minutes vs full deployment)
 
 **When to use which:**
-- Use `./qd.sh` for code changes, bug fixes, small features
-- Use `./deploy-container-to-azure.sh` for environment variable changes, major updates, or initial deployment
+- Use `./qd.sh rebuild` for code changes, bug fixes, small features (faster)
+- Use `./deploy-container-to-azure.sh` for configuration changes, initial deployment, or full updates
 
 **Configuration:**
-Update the script variables at the top for your deployment:
+All deployment settings are now configured in `.env.azure`:
 ```bash
-RESOURCE_GROUP="your-resource-group"  # Update this
-APP_NAME="your-app-name"             # Update this
-LOCATION="Canada Central"            # Update this
+# No need to edit scripts - everything is in .env.azure
+RESOURCE_GROUP=your-resource-group
+APP_NAME=your-app-name  
+LOCATION="Canada Central"
+ACR_NAME=your-container-registry  # optional
 ```
+
+**Detailed Setup Guide:** See [AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md) for comprehensive Azure deployment instructions.
 
 ### Manual Deployment Steps
 
