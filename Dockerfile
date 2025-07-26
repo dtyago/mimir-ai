@@ -82,5 +82,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Don't set ENVIRONMENT here - let Azure App Service control it
-# Default command for production
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-c", "/app/gunicorn_conf.py", "startup:app"]
+# For devcontainer: Use ./start.sh manually for development control
+# For production: This Dockerfile is not used (see Dockerfile.azure)
+# CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-c", "/app/gunicorn_conf.py", "startup:app"]
