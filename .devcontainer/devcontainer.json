@@ -6,7 +6,7 @@
 	// Dev container configuration
 	"remoteUser": "mimir",
 	"workspaceFolder": "/workspaces/mimir-api",
-	// Mounts for persistent data
+	// Mounts for persistent data with proper ownership
 	"mounts": [
 		"source=mimir-chromadb-data,target=/workspaces/mimir-api/data/chromadb,type=volume",
 		"source=mimir-logs-data,target=/workspaces/mimir-api/data/logs,type=volume",
@@ -34,7 +34,7 @@
 		}
 	},
 	// Commands to run after container creation
-	"postCreateCommand": "echo 'Development container ready! Configure your .env file and run: ./start.sh'",
+	"postCreateCommand": "sudo chown -R mimir:mimir /workspaces/mimir-api/data && chmod -R 755 /workspaces/mimir-api/data && echo 'Development container ready! Configure your .env file and run: ./start.sh'",
 	// VS Code customizations
 	"customizations": {
 		"vscode": {

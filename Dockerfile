@@ -64,6 +64,7 @@ COPY gunicorn_conf.py ./
 COPY .env* ./
 
 # Create necessary directories with proper permissions
+# Note: Volume mounts in devcontainer will override these permissions
 RUN mkdir -p data/chromadb data/uploads data/tmp data/logs tmp/uploads && \
     chmod -R 755 data tmp && \
     chmod 700 data/chromadb && \
