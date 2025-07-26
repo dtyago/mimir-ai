@@ -13,7 +13,9 @@
 	"mounts": [
 		"source=mimir-chromadb-data,target=/workspaces/mimir-api/data/chromadb,type=volume",
 		"source=mimir-logs-data,target=/workspaces/mimir-api/data/logs,type=volume",
-		"source=mimir-uploads-data,target=/workspaces/mimir-api/data/uploads,type=volume"
+		"source=mimir-uploads-data,target=/workspaces/mimir-api/data/uploads,type=volume",
+		"source=mimir-tmp-data,target=/workspaces/mimir-api/data/tmp,type=volume",
+		"source=mimir-face-images-data,target=/workspaces/mimir-api/data/face_images,type=volume"
 	],
 	
 	// Features to add to the dev container
