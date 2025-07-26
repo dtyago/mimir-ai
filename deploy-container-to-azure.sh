@@ -20,8 +20,34 @@ fi
 
 # Verify Azure login
 if ! az account show &> /dev/null; then
-    echo "❌ Not logged in to Azure. Please run: az login"
-    exit 1
+    echo "❌ Not logged in to Azure."
+    echo ""
+    echo "🔐 Authentication Options:"
+    echo "1. Interactive login (recommended for development):"
+    echo "   az login"
+    echo ""
+    echo "2. Device code login (for remote/codespace environments):"
+    echo "   az login --use-device-code"
+    echo ""
+    echo "3. Service principal (for CI/CD pipelines):"
+    echo "   az login --service-principal -u <app-id> -p <password> --tenant <tenant>"
+    echo ""
+    echo "4. Managed identity (for Azure VMs/App Service):"
+    echo "   az login --identity"
+    echo ""
+    read -p "🤔 Would you like to try device code login now? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "🚀 Initiating device code login..."
+        az login --use-device-code
+        if ! az account show &> /dev/null; then
+            echo "❌ Login failed. Please try manual authentication."
+            exit 1
+        fi
+    else
+        echo "💡 Please authenticate manually and re-run this script."
+        exit 1
+    fi
 fi
 
 echo "✅ All dependencies satisfied"
