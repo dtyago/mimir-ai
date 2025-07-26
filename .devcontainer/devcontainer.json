@@ -1,14 +1,11 @@
 {
 	"name": "Mimir API Development Container",
-	
 	// Use the Dockerfile in the project root
 	"dockerFile": "../Dockerfile",
 	"context": "..",
-	
 	// Dev container configuration
 	"remoteUser": "mimir",
 	"workspaceFolder": "/workspaces/mimir-api",
-	
 	// Mounts for persistent data
 	"mounts": [
 		"source=mimir-chromadb-data,target=/workspaces/mimir-api/data/chromadb,type=volume",
@@ -17,7 +14,6 @@
 		"source=mimir-tmp-data,target=/workspaces/mimir-api/data/tmp,type=volume",
 		"source=mimir-face-images-data,target=/workspaces/mimir-api/data/face_images,type=volume"
 	],
-	
 	// Features to add to the dev container
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {
@@ -27,19 +23,18 @@
 			"username": "mimir"
 		}
 	},
-
 	// Ports to forward for development
-	"forwardPorts": [8000],
+	"forwardPorts": [
+		8000
+	],
 	"portsAttributes": {
 		"8000": {
 			"label": "Mimir API",
 			"onAutoForward": "notify"
 		}
 	},
-
 	// Commands to run after container creation
 	"postCreateCommand": "echo 'Development container ready! Configure your .env file and run: ./start.sh'",
-
 	// VS Code customizations
 	"customizations": {
 		"vscode": {
@@ -70,13 +65,12 @@
 			}
 		}
 	},
-
 	// Environment variables for development
 	"remoteEnv": {
 		"ENVIRONMENT": "devcontainer",
 		"APP_ENV": "development",
 		"APP_HOST": "0.0.0.0",
-		"APP_PORT": "8000", 
+		"APP_PORT": "8000",
 		"DEBUG": "true",
 		"AUTO_RELOAD": "true",
 		"PYTHONPATH": "/workspaces/mimir-api",
