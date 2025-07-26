@@ -21,6 +21,11 @@
 			"installOhMyZsh": true,
 			"configureZshAsDefaultShell": true,
 			"username": "mimir"
+		},
+		"ghcr.io/devcontainers/features/azure-cli:1": {
+			"version": "latest",
+			"installBicep": false,
+			"installUsingPython": false
 		}
 	},
 	// Ports to forward for development
@@ -34,7 +39,7 @@
 		}
 	},
 	// Commands to run after container creation
-	"postCreateCommand": "sudo chown -R mimir:mimir /workspaces/mimir-api/data && chmod -R 755 /workspaces/mimir-api/data && echo 'Development container ready! Configure your .env file and run: ./start.sh'",
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y jq && sudo chown -R mimir:mimir /workspaces/mimir-api/data && chmod -R 755 /workspaces/mimir-api/data && echo 'Development container ready! Configure your .env file and run: ./start.sh'",
 	// VS Code customizations
 	"customizations": {
 		"vscode": {
