@@ -33,7 +33,9 @@ async def verify_user_face(file_path: str) -> Optional[dict]:
 
 @router.post("/user/login")
 async def user_login(file: UploadFile = File(...)):
-    file_path = f"/workspaces/mimir-api/data/tmp/{uuid.uuid4()}.jpg"  # Generates a unique filename
+    import os
+    temp_dir = os.getenv('TEMP_UPLOAD_DIR', '/tmp/uploads')
+    file_path = f"{temp_dir}/{uuid.uuid4()}.jpg"  # Generates a unique filename
     try:
         with open(file_path, "wb") as buffer:
             contents = await file.read()

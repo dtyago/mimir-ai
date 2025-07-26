@@ -13,7 +13,7 @@ async def upload_file(file: UploadFile = File(...), current_user: Any = Depends(
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a PDF.")
     
-    upload_dir = "/workspaces/mimir-api/data/uploads"
+    upload_dir = os.getenv('UPLOAD_DIR', '/tmp/uploads')
     os.makedirs(upload_dir, exist_ok=True)
     
     file_location = f"{upload_dir}/{file.filename}"
