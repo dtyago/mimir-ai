@@ -73,11 +73,23 @@
 	"remoteEnv": {
 		"ENVIRONMENT": "devcontainer",
 		"APP_ENV": "development",
+		"APP_HOST": "0.0.0.0",
+		"APP_PORT": "8000", 
+		"DEBUG": "true",
+		"AUTO_RELOAD": "true",
 		"PYTHONPATH": "/workspaces/mimir-api",
 		"CHROMADB_LOC": "/workspaces/mimir-api/data/chromadb",
 		"USER_DATA_DIR": "/workspaces/mimir-api/data",
 		"UPLOAD_DIR": "/workspaces/mimir-api/data/uploads",
+		"TEMP_UPLOAD_DIR": "/workspaces/mimir-api/data/tmp",
+		"FACE_TEMP_DIR": "/workspaces/mimir-api/data/face_images",
 		"LOG_FILE": "/workspaces/mimir-api/data/logs/mimir-api.log",
+		"LOG_LEVEL": "INFO",
+		"CORS_ORIGINS": "http://localhost:8000",
+		"L2_FACE_THRESHOLD": "0.85",
+		"SESSION_VALIDITY_MINUTES": "1440",
+		"MAX_FILE_SIZE": "50000000",
+		"ALLOWED_FILE_TYPES": "application/pdf",
 		"CHROMADB_ALLOW_RESET": "true"
 	}
 }

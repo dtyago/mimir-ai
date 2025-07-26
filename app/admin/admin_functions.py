@@ -25,7 +25,9 @@ async def register_user(db, email: str, name: str, role: str, file: UploadFile =
     :return: email 
     """
     unique_filename = f"{email}.jpg"  # Use the email as the filename
-    file_path = f"/workspaces/mimir-api/data/tmp/{unique_filename}"  # Use mounted directory
+    # Use environment variable for temp directory, fallback to Azure-compatible path
+    temp_dir = os.getenv('TEMP_UPLOAD_DIR', '/tmp/uploads')
+    file_path = f"{temp_dir}/{unique_filename}"
 
     # Ensure the directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -85,7 +87,10 @@ def verify_admin_password(submitted_user: str, submitted_password: str) -> bool:
     return False
 
 # Get disk usage 
-def get_disk_usage(path="/workspaces/mimir-api/data"):
+def get_disk_usage(path=None):
+    # Use environment variable for data directory, fallback to Azure-compatible path
+    if path is None:
+        path = os.getenv('USER_DATA_DIR', '/tmp/data')
     total, used, free = shutil.disk_usage(path)
     # Convert bytes to MB by dividing by 2^20
     return {
