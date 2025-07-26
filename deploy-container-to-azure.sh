@@ -265,7 +265,9 @@ az webapp config appsettings set \
     APP_ENV="${APP_ENV:-production}" \
     APP_HOST="${APP_HOST:-0.0.0.0}" \
     APP_PORT="${APP_PORT:-8000}" \
-    CORS_ORIGINS="${CORS_ORIGINS:-https://$APP_NAME.azurewebsites.net}" \
+    # Get the actual app URL for CORS configuration
+    ACTUAL_URL=$(az webapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query defaultHostName --output tsv 2>/dev/null || echo "$APP_NAME.azurewebsites.net")
+    CORS_ORIGINS="${CORS_ORIGINS:-https://$ACTUAL_URL}" \
     L2_FACE_THRESHOLD="${L2_FACE_THRESHOLD:-0.85}" \
     SESSION_VALIDITY_MINUTES="${SESSION_VALIDITY_MINUTES:-1440}" \
     MAX_FILE_SIZE="${MAX_FILE_SIZE:-50000000}" \
@@ -290,10 +292,14 @@ az webapp config appsettings set \
 echo "🔄 Restarting app to apply changes..."
 az webapp restart --name $APP_NAME --resource-group $RESOURCE_GROUP
 
+# 7. Final output with URLs and commands
 echo "✅ Deployment complete!"
 echo ""
-echo "🌐 Your app URL: https://$APP_NAME.azurewebsites.net"
-echo "📖 API Documentation: https://$APP_NAME.azurewebsites.net/docs"
+
+# Get the actual app URL from Azure (new format)
+ACTUAL_URL=$(az webapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query defaultHostName --output tsv)
+echo "🌐 Your app URL: https://$ACTUAL_URL"
+echo "📖 API Documentation: https://$ACTUAL_URL/docs"
 echo ""
 echo "🔑 Environment variables configured from .env.azure"
 echo "📊 Check deployment status:"

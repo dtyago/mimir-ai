@@ -42,8 +42,10 @@ COPY startup.py ./
 COPY gunicorn_conf.py ./
 
 # Create directories and ensure proper permissions for Azure App Service
-RUN mkdir -p data/chromadb data/uploads data/tmp data/logs /tmp/chromadb /tmp/uploads /tmp/data /tmp/logs && \
-    chmod -R 777 data /tmp && \
+# Create both /app/data (fallback) and /home/data (Azure persistent storage)
+RUN mkdir -p data/chromadb data/uploads data/tmp data/logs /tmp/chromadb /tmp/uploads /tmp/data /tmp/logs \
+    /home/data/chromadb /home/data/uploads /home/data/tmp /home/data/logs && \
+    chmod -R 777 data /tmp /home/data 2>/dev/null || true && \
     chmod -R 755 app static
 
 # Azure App Service configuration
@@ -58,6 +60,10 @@ RUN echo '#!/bin/bash' > /app/debug_start.sh && \
     echo 'echo "ENVIRONMENT: $ENVIRONMENT"' >> /app/debug_start.sh && \
     echo 'echo "Files in /app:"' >> /app/debug_start.sh && \
     echo 'ls -la /app/' >> /app/debug_start.sh && \
+    echo 'echo "=== Ensuring Data Directories ===" ' >> /app/debug_start.sh && \
+    echo 'mkdir -p /home/data/chromadb /home/data/uploads /home/data/tmp /home/data/logs' >> /app/debug_start.sh && \
+    echo 'chmod -R 777 /home/data 2>/dev/null || true' >> /app/debug_start.sh && \
+    echo 'echo "Directory permissions set"' >> /app/debug_start.sh && \
     echo 'echo "=== Starting Gunicorn ===" ' >> /app/debug_start.sh && \
     echo 'exec gunicorn -k uvicorn.workers.UvicornWorker -c /app/gunicorn_conf.py startup:app' >> /app/debug_start.sh && \
     chmod +x /app/debug_start.sh
