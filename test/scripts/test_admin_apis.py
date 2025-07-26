@@ -11,12 +11,18 @@ from io import BytesIO
 from PIL import Image
 
 def create_test_image():
-    """Create a simple test image for face registration"""
-    img = Image.new('RGB', (100, 100), color='red')
-    img_bytes = BytesIO()
-    img.save(img_bytes, format='JPEG')
-    img_bytes.seek(0)
-    return img_bytes
+    """Use the real test image from the test folder"""
+    test_image_path = "/workspaces/mimir-api/test/login-test.jpg"
+    if os.path.exists(test_image_path):
+        with open(test_image_path, 'rb') as f:
+            return BytesIO(f.read())
+    else:
+        # Fallback to creating a simple test image
+        img = Image.new('RGB', (100, 100), color='red')
+        img_bytes = BytesIO()
+        img.save(img_bytes, format='JPEG')
+        img_bytes.seek(0)
+        return img_bytes
 
 def test_admin_apis(base_url="http://localhost:8000"):
     """Test admin registration and login APIs"""
@@ -46,7 +52,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
     # Test 2: Admin Login Page
     print("\n2️⃣ Testing Admin Login Page...")
     try:
-        response = session.get(f"{base_url}/admin")
+        response = session.get(f"{base_url}/")
         if response.status_code == 200 and "login" in response.text.lower():
             print("   ✅ Admin login page accessible")
             test_results.append(("Admin Login Page", True))
@@ -60,22 +66,22 @@ def test_admin_apis(base_url="http://localhost:8000"):
     # Test 3: User Registration Endpoint
     print("\n3️⃣ Testing User Registration Endpoint...")
     try:
-        # Prepare test data
+        # Prepare test data with correct field names based on admin_functions.py
         test_user_data = {
-            'username': 'testuser123',
-            'password': 'testpass123',
-            'email': 'testuser@example.com'
+            'name': 'Test User 123',
+            'email': 'testuser123@example.com',
+            'role': 'student'  # Must be 'student' or 'teacher'
         }
         
-        # Create test image
+        # Create test image using real test file
         test_image = create_test_image()
         
         files = {
-            'face_image': ('test_face.jpg', test_image, 'image/jpeg')
+            'file': ('login-test.jpg', test_image, 'image/jpeg')
         }
         
         response = session.post(
-            f"{base_url}/api/register", 
+            f"{base_url}/admin/register_user", 
             data=test_user_data,
             files=files
         )
@@ -100,15 +106,17 @@ def test_admin_apis(base_url="http://localhost:8000"):
         print(f"   ❌ Registration error: {e}")
         test_results.append(("User Registration", False))
     
-    # Test 4: User Login Endpoint
+    # Test 4: User Login Endpoint (Face-based login)
     print("\n4️⃣ Testing User Login Endpoint...")
     try:
-        login_data = {
-            'username': 'testuser123',
-            'password': 'testpass123'
+        # User login requires a face image file, not username/password
+        test_image = create_test_image()
+        
+        files = {
+            'file': ('login-test.jpg', test_image, 'image/jpeg')
         }
         
-        response = session.post(f"{base_url}/api/login", json=login_data)
+        response = session.post(f"{base_url}/user/login", files=files)
         print(f"   📊 Login response: {response.status_code}")
         
         if response.status_code == 200:
@@ -116,6 +124,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
                 login_response = response.json()
                 if 'access_token' in login_response:
                     print("   ✅ Login successful, token received")
+                    print(f"   👤 User: {login_response.get('user_name', 'Unknown')}")
                     test_results.append(("User Login", True))
                 else:
                     print(f"   ⚠️  Login response: {login_response}")

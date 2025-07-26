@@ -137,8 +137,8 @@ async def get_user_registration(request: Request):
 async def handle_user_registration(request: Request, email: str = Form(...), name: str = Form(...), role: str = Form(...), file: UploadFile = File(...)):
     user_id = await admin.register_user(user_faces_db, email, name, role, file)
     if user_id:
-        # Calculate disk usage
-        disk_usage = admin.get_disk_usage("/workspaces/mimir-api/data")
+        # Calculate disk usage using environment variable
+        disk_usage = admin.get_disk_usage()
 
         # Redirect or display a success message
         return templates.TemplateResponse("registration_success.html", {
