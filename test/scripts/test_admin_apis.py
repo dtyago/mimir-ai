@@ -32,10 +32,10 @@ def test_admin_apis(base_url="http://localhost:8000"):
     session = requests.Session()
     test_results = []
     
-    # Test 1: Health Check
+    # Test 1: Health Check - CRITICAL TEST
     print("1️⃣ Testing Health Endpoint...")
     try:
-        response = session.get(f"{base_url}/health")
+        response = session.get(f"{base_url}/health", timeout=30)
         if response.status_code == 200:
             health_data = response.json()
             print(f"   ✅ Health: {health_data['status']}")
@@ -44,15 +44,62 @@ def test_admin_apis(base_url="http://localhost:8000"):
             test_results.append(("Health Check", True))
         else:
             print(f"   ❌ Health check failed: {response.status_code}")
+            print(f"   🛑 CRITICAL FAILURE: Service not responding properly")
+            
+            # Different recommendations based on environment
+            if "localhost" in base_url:
+                print(f"   🔄 DevContainer Recommendations:")
+                print(f"      - Server may be auto-restarting (use ./dev-server-stable.sh)")
+                print(f"      - Check if development server is running (./start.sh)")
+                print(f"      - Verify port 8000 is available")
+            else:
+                print(f"   🔄 Azure App Service Recommendations:")
+                print(f"      - Check Azure App Service status in portal")
+                print(f"      - Verify App Service Plan has sufficient resources")
+                print(f"      - Review application logs for worker timeout issues")
+                print(f"      - Consider scaling up if using Basic B1 tier")
+            
             test_results.append(("Health Check", False))
+            return False  # Fail fast - no point continuing
+    except requests.exceptions.Timeout:
+        print(f"   ❌ Health check timeout (30s)")
+        print(f"   🛑 CRITICAL FAILURE: Service taking too long to respond")
+        
+        if "localhost" in base_url:
+            print(f"   🔄 Local server may be overloaded or stuck")
+        else:
+            print(f"   🔄 Azure App Service may be under resource pressure")
+            print(f"      - Check if Basic B1 tier has sufficient memory for ML workloads")
+            print(f"      - Consider upgrading to B2 or higher tier")
+        
+        test_results.append(("Health Check", False))
+        return False
+    except requests.exceptions.ConnectionError:
+        print(f"   ❌ Health check connection error")
+        print(f"   🛑 CRITICAL FAILURE: Cannot connect to service")
+        
+        if "localhost" in base_url:
+            print(f"   🔄 DevContainer Recommendations:")
+            print(f"      - Check if development server is running")
+            print(f"      - Server may be restarting (auto-reload issue)")
+        else:
+            print(f"   🔄 Azure App Service Recommendations:")
+            print(f"      - Verify service URL is correct")
+            print(f"      - Check if App Service is running in Azure portal")
+            print(f"      - Verify deployment was successful")
+        
+        test_results.append(("Health Check", False))
+        return False  # Fail fast - no point continuing
     except Exception as e:
         print(f"   ❌ Health check error: {e}")
+        print(f"   🛑 CRITICAL FAILURE: Unexpected error during health check")
         test_results.append(("Health Check", False))
+        return False  # Fail fast - no point continuing
     
     # Test 2: Admin Login Page
     print("\n2️⃣ Testing Admin Login Page...")
     try:
-        response = session.get(f"{base_url}/")
+        response = session.get(f"{base_url}/", timeout=30)
         if response.status_code == 200 and "login" in response.text.lower():
             print("   ✅ Admin login page accessible")
             test_results.append(("Admin Login Page", True))
@@ -83,7 +130,8 @@ def test_admin_apis(base_url="http://localhost:8000"):
         response = session.post(
             f"{base_url}/admin/register_user", 
             data=test_user_data,
-            files=files
+            files=files,
+            timeout=30
         )
         
         print(f"   📊 Registration response: {response.status_code}")
@@ -116,7 +164,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
             'file': ('login-test.jpg', test_image, 'image/jpeg')
         }
         
-        response = session.post(f"{base_url}/user/login", files=files)
+        response = session.post(f"{base_url}/user/login", files=files, timeout=30)
         print(f"   📊 Login response: {response.status_code}")
         
         if response.status_code == 200:
@@ -150,7 +198,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
     try:
         # This would require admin authentication in a real scenario
         # For now, we test if the endpoint exists
-        response = session.get(f"{base_url}/admin/data_management")
+        response = session.get(f"{base_url}/admin/data_management", timeout=30)
         if response.status_code in [200, 302, 401, 403]:  # Various expected responses
             print("   ✅ Admin data management endpoint exists")
             test_results.append(("Admin Functions", True))
@@ -185,12 +233,52 @@ def test_admin_apis(base_url="http://localhost:8000"):
         return False
 
 if __name__ == "__main__":
-    # Test with different base URLs if provided
-    base_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
+    # Determine base URL and environment
+    base_url = "https://mimir-api-dtev.azurewebsites.net"
+    environment_type = "Azure Production"
+    
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "local":
+        base_url = "http://localhost:8000"
+        environment_type = "Local DevContainer"
+    elif len(sys.argv) > 1:
+        base_url = sys.argv[1]
+        environment_type = "Custom"
     
     print(f"🚀 Admin API Test Suite")
     print(f"🎯 Target: {base_url}")
+    print(f"🏷️  Environment: {environment_type}")
+    print(f"⏱️  Request timeout: 30 seconds")
+    
+    # Environment-specific warnings
+    if "localhost" in base_url:
+        print("⚠️  DevContainer Note: Auto-reload may cause connection issues")
+        print("   Consider using ./dev-server-stable.sh for more reliable testing")
+    else:
+        print("🔍 Azure Note: Testing against production service")
+        print("   Failures may indicate resource constraints or deployment issues")
+    
     print("=" * 60)
     
     success = test_admin_apis(base_url)
+    
+    if not success:
+        print("\n" + "=" * 60)
+        print("❌ TESTS FAILED")
+        print("=" * 60)
+        print("💡 Environment-Specific Troubleshooting:")
+        
+        if "localhost" in base_url:
+            print("   DevContainer Issues:")
+            print("   1. Check if auto-reload is causing restarts")
+            print("   2. Use stable server: ./dev-server-stable.sh")
+            print("   3. Verify .env file is properly configured")
+            print("   4. Ensure all dependencies are installed")
+        else:
+            print("   Azure App Service Issues:")
+            print("   1. Check App Service status in Azure portal")
+            print("   2. Review application logs for errors")
+            print("   3. Verify App Service Plan tier (B2+ recommended for ML)")
+            print("   4. Check recent deployments for issues")
+            print("   5. Consider scaling up if using Basic B1 tier")
+    
     sys.exit(0 if success else 1)

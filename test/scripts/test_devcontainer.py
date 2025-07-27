@@ -8,7 +8,47 @@ import os
 import sys
 import requests
 import json
+import time
 from pathlib import Path
+
+def check_server_stability():
+    """Check if the server is stable (not frequently restarting)"""
+    print("\n🔍 Checking Server Stability")
+    print("-" * 40)
+    
+    # Check if auto-reload is enabled by looking at running processes
+    try:
+        import subprocess
+        result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
+        if '--reload' in result.stdout:
+            print("⚠️  Auto-reload detected in server process")
+            print("   This can cause intermittent test failures")
+            print("   Consider using ./dev-server-stable.sh for testing")
+        else:
+            print("✅ Server running in stable mode (no auto-reload)")
+        
+        # Test server stability with multiple quick requests
+        print("   Testing server responsiveness...")
+        failures = 0
+        for i in range(3):
+            try:
+                response = requests.get("http://localhost:8000/health", timeout=5)
+                if response.status_code != 200:
+                    failures += 1
+            except:
+                failures += 1
+            time.sleep(0.5)
+        
+        if failures == 0:
+            print("✅ Server stability check passed")
+            return True
+        else:
+            print(f"⚠️  Server stability issues: {failures}/3 requests failed")
+            return False
+            
+    except Exception as e:
+        print(f"⚠️  Could not check server stability: {e}")
+        return False
 
 def test_environment_variables():
     """Test that all required environment variables are set"""
@@ -70,50 +110,86 @@ def test_directory_structure():
     return all_good
 
 def test_health_endpoint():
-    """Test the health endpoint"""
+    """Test the health endpoint with retry logic for unstable dev server"""
     print("\n🏥 Testing Health Endpoint")
     print("-" * 40)
     
-    try:
-        response = requests.get("http://localhost:8000/health", timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            print("✅ Health endpoint responded successfully")
-            print(f"   Status: {data.get('status')}")
-            print(f"   Azure OpenAI: {data.get('azure_openai_configured')}")
-            print(f"   ChromaDB: {data.get('chromadb_configured')}")
-            return True
-        else:
-            print(f"❌ Health endpoint returned {response.status_code}")
-            return False
-    except requests.exceptions.ConnectionError:
-        print("❌ Could not connect to server - is it running?")
-        return False
-    except Exception as e:
-        print(f"❌ Health check failed: {e}")
-        return False
+    max_retries = 3
+    retry_delay = 2
+    
+    for attempt in range(max_retries):
+        try:
+            if attempt > 0:
+                print(f"   🔄 Retry attempt {attempt + 1}/{max_retries}...")
+                import time
+                time.sleep(retry_delay)
+            
+            response = requests.get("http://localhost:8000/health", timeout=30)
+            if response.status_code == 200:
+                data = response.json()
+                print("✅ Health endpoint responded successfully")
+                print(f"   Status: {data.get('status')}")
+                print(f"   Azure OpenAI: {data.get('azure_openai_configured')}")
+                print(f"   ChromaDB: {data.get('chromadb_configured')}")
+                return True
+            else:
+                print(f"⚠️  Health endpoint returned {response.status_code} (attempt {attempt + 1})")
+                if attempt == max_retries - 1:
+                    print(f"❌ Health endpoint failed after {max_retries} attempts")
+                    return False
+        except requests.exceptions.ConnectionError:
+            print(f"⚠️  Connection failed (attempt {attempt + 1}) - server may be restarting...")
+            if attempt == max_retries - 1:
+                print("❌ Could not connect to server - is it running?")
+                print("💡 Note: DevContainer uses auto-reload which can cause temporary connection issues")
+                return False
+        except Exception as e:
+            print(f"⚠️  Health check error (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                print(f"❌ Health check failed after {max_retries} attempts")
+                return False
+    
+    return False
 
 def test_admin_login():
-    """Test admin login page"""
+    """Test admin login page with retry logic"""
     print("\n🔐 Testing Admin Login")
     print("-" * 40)
     
-    try:
-        response = requests.get("http://localhost:8000/", timeout=10)
-        if response.status_code == 200:
-            print("✅ Admin login page accessible")
-            if "admin" in response.text.lower():
-                print("✅ Login form detected")
-                return True
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            if attempt > 0:
+                print(f"   🔄 Retry attempt {attempt + 1}/{max_retries}...")
+                import time
+                time.sleep(1)
+            
+            response = requests.get("http://localhost:8000/", timeout=30)
+            if response.status_code == 200:
+                print("✅ Admin login page accessible")
+                if "admin" in response.text.lower():
+                    print("✅ Login form detected")
+                    return True
+                else:
+                    print("⚠️  Response received but no login form detected")
+                    return False
             else:
-                print("⚠️  Response received but no login form detected")
+                print(f"⚠️  Admin login page returned {response.status_code} (attempt {attempt + 1})")
+                if attempt == max_retries - 1:
+                    print(f"❌ Admin login page failed after {max_retries} attempts")
+                    return False
+        except requests.exceptions.ConnectionError:
+            print(f"⚠️  Connection failed (attempt {attempt + 1}) - server may be restarting...")
+            if attempt == max_retries - 1:
+                print("❌ Could not connect to server")
                 return False
-        else:
-            print(f"❌ Admin login page returned {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Admin login test failed: {e}")
-        return False
+        except Exception as e:
+            print(f"⚠️  Admin login test error (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                print(f"❌ Admin login test failed after {max_retries} attempts")
+                return False
+    
+    return False
 
 def test_admin_functions():
     """Test admin function imports and basic functionality"""
@@ -144,41 +220,71 @@ def main():
     print("🚀 DevContainer Environment Test Suite")
     print("=" * 50)
     
-    tests = [
-        ("Environment Variables", test_environment_variables),
-        ("Directory Structure", test_directory_structure),
-        ("Admin Functions", test_admin_functions),
-        ("Health Endpoint", test_health_endpoint),
-        ("Admin Login", test_admin_login),
-    ]
+    # First run environment checks (these are always needed)
+    print("Phase 1: Environment Validation")
+    print("-" * 30)
     
-    results = []
-    for test_name, test_func in tests:
-        try:
-            result = test_func()
-            results.append((test_name, result))
-        except Exception as e:
-            print(f"❌ {test_name} test crashed: {e}")
-            results.append((test_name, False))
+    env_test = test_environment_variables()
+    dir_test = test_directory_structure()
+    admin_test = test_admin_functions()
+    
+    # If environment is not set up properly, warn but continue to health check
+    if not (env_test and dir_test and admin_test):
+        print("\n⚠️  Environment issues detected - but continuing to test API...")
+    
+    # Phase 2: Critical API health check (fail-fast)
+    print("\nPhase 2: Critical API Health Check")
+    print("-" * 30)
+    
+    # First check server stability
+    stability_test = check_server_stability()
+    if not stability_test:
+        print("⚠️  Server stability issues detected - tests may be unreliable")
+    
+    health_test = test_health_endpoint()
+    if not health_test:
+        print("\n" + "=" * 50)
+        print("🛑 CRITICAL FAILURE: API Health Check Failed")
+        print("=" * 50)
+        print("❌ Service is not responding - aborting remaining tests")
+        print("\n💡 Next Steps:")
+        print("1. Check if server is restarting frequently (auto-reload issue)")
+        print("2. Try using stable server: ./dev-server-stable.sh")
+        print("3. Start the development server: ./start.sh")
+        print("4. Verify .env file contains all required credentials")
+        print("5. Ensure devcontainer was rebuilt after configuration changes")
+        print("6. Check port 8000 is available and not blocked")
+        return False
+    
+    # Phase 3: Additional API tests (only if health check passed)
+    print("\nPhase 3: Additional API Tests")
+    print("-" * 30)
+    
+    login_test = test_admin_login()
+    
+    # Collect all results
+    tests = [
+        ("Environment Variables", env_test),
+        ("Directory Structure", dir_test),
+        ("Admin Functions", admin_test),
+        ("Health Endpoint", health_test),
+        ("Admin Login", login_test),
+    ]
     
     print("\n" + "=" * 50)
     print("📊 Test Results Summary")
     print("=" * 50)
     
     all_passed = True
-    for test_name, passed in results:
+    for test_name, passed in tests:
         status = "✅ PASS" if passed else "❌ FAIL"
         print(f"{status} {test_name}")
         if not passed:
             all_passed = False
     
     print(f"\n🎯 Overall Result: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
-    
-    if not all_passed:
-        print("\n💡 Next Steps:")
-        print("1. Check that the development server is running: ./start.sh")
-        print("2. Verify .env file contains all required credentials")
-        print("3. Ensure devcontainer was rebuilt after configuration changes")
+    return all_passed
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    sys.exit(0 if success else 1)
