@@ -56,5 +56,15 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
+# Azure App Service fix: Copy files to expected location
+# This ensures Azure App Service can find the files while keeping /app as working directory
+RUN mkdir -p /home/site/wwwroot && \
+    cp -r /app/* /home/site/wwwroot/ && \
+    chmod +x /home/site/wwwroot/debug_start.sh && \
+    # Create data directories in both locations for compatibility
+    mkdir -p /home/site/wwwroot/data/chromadb /home/site/wwwroot/data/uploads \
+             /home/site/wwwroot/data/tmp /home/site/wwwroot/data/logs && \
+    chmod -R 777 /home/site/wwwroot/data 2>/dev/null || true
+
 # Use the startup script
 CMD ["/app/debug_start.sh"]
