@@ -35,7 +35,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
     # Test 1: Health Check - CRITICAL TEST
     print("1️⃣ Testing Health Endpoint...")
     try:
-        response = session.get(f"{base_url}/health", timeout=30)
+        response = session.get(f"{base_url}/health", timeout=10)  # Reduced from 30s to 10s
         if response.status_code == 200:
             health_data = response.json()
             print(f"   ✅ Health: {health_data['status']}")
@@ -62,7 +62,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
             test_results.append(("Health Check", False))
             return False  # Fail fast - no point continuing
     except requests.exceptions.Timeout:
-        print(f"   ❌ Health check timeout (30s)")
+        print(f"   ❌ Health check timeout (10s)")
         print(f"   🛑 CRITICAL FAILURE: Service taking too long to respond")
         
         if "localhost" in base_url:
@@ -234,7 +234,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
 
 if __name__ == "__main__":
     # Determine base URL and environment
-    base_url = "https://mimir-api-dtev.azurewebsites.net"
+    base_url = "https://mimir-api-prod-bbdadveqe2dha6hp.canadacentral-01.azurewebsites.net"
     environment_type = "Azure Production"
     
     if len(sys.argv) > 1 and sys.argv[1].lower() == "local":
@@ -247,7 +247,8 @@ if __name__ == "__main__":
     print(f"🚀 Admin API Test Suite")
     print(f"🎯 Target: {base_url}")
     print(f"🏷️  Environment: {environment_type}")
-    print(f"⏱️  Request timeout: 30 seconds")
+    print(f"⏱️  Health check timeout: 10 seconds (fail-fast)")
+    print(f"⏱️  Other requests timeout: 30 seconds")
     
     # Environment-specific warnings
     if "localhost" in base_url:

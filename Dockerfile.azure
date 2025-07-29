@@ -1,17 +1,17 @@
-# Dockerfile specifically for Azure App Service
-# Use Python 3.12 slim image
+# Use official Python 3.12 slim image
 FROM python:3.12-slim
 
-# Set working directory
-WORKDIR /app
+# Set working directory to Azure App Service expected location
+WORKDIR /home/site/wwwroot
 
-# Set environment variables for Python
-ENV PYTHONPATH=/app
+# Set environment variables
+ENV PYTHONPATH=/home/site/wwwroot
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CHROMADB_ALLOW_RESET=true
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-# Install system dependencies including build tools
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc g++ make pkg-config wget libsqlite3-dev \
     libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 \
@@ -27,11 +27,8 @@ RUN cd /tmp && \
     make && make install && ldconfig && \
     cd / && rm -rf /tmp/sqlite-autoconf-*
 
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-# Upgrade pip and install dependencies
+# Upgrade pip and install Python dependencies
 RUN pip install --upgrade pip setuptools wheel
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
@@ -42,29 +39,20 @@ COPY startup.py ./
 COPY gunicorn_conf.py ./
 COPY debug_start.sh ./debug_start.sh
 
-# Create directories and ensure proper permissions for Azure App Service
-# Create both /app/data (fallback) and /home/data (Azure persistent storage)
-RUN mkdir -p data/chromadb data/uploads data/tmp data/logs /tmp/chromadb /tmp/uploads /tmp/data /tmp/logs \
+# Create required directories with correct permissions
+RUN mkdir -p data/chromadb data/uploads data/tmp data/logs \
+    /tmp/chromadb /tmp/uploads /tmp/data /tmp/logs \
     /home/data/chromadb /home/data/uploads /home/data/tmp /home/data/logs && \
     chmod -R 777 data /tmp /home/data 2>/dev/null || true && \
     chmod -R 755 app static && \
     chmod +x debug_start.sh
 
-# Azure App Service configuration
+# Expose the app port
 EXPOSE 8000
 
+# Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Azure App Service fix: Copy files to expected location
-# This ensures Azure App Service can find the files while keeping /app as working directory
-RUN mkdir -p /home/site/wwwroot && \
-    cp -r /app/* /home/site/wwwroot/ && \
-    chmod +x /home/site/wwwroot/debug_start.sh && \
-    # Create data directories in both locations for compatibility
-    mkdir -p /home/site/wwwroot/data/chromadb /home/site/wwwroot/data/uploads \
-             /home/site/wwwroot/data/tmp /home/site/wwwroot/data/logs && \
-    chmod -R 777 /home/site/wwwroot/data 2>/dev/null || true
-
-# Use the startup script
-CMD ["/app/debug_start.sh"]
+# Start the app
+CMD ["./debug_start.sh"]

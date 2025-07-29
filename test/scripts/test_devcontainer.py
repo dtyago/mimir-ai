@@ -32,7 +32,7 @@ def check_server_stability():
         failures = 0
         for i in range(3):
             try:
-                response = requests.get("http://localhost:8000/health", timeout=5)
+                response = requests.get("http://localhost:8000/health", timeout=3)  # Quick 3s timeout
                 if response.status_code != 200:
                     failures += 1
             except:
@@ -124,7 +124,7 @@ def test_health_endpoint():
                 import time
                 time.sleep(retry_delay)
             
-            response = requests.get("http://localhost:8000/health", timeout=30)
+            response = requests.get("http://localhost:8000/health", timeout=10)  # Reduced from 30s to 10s
             if response.status_code == 200:
                 data = response.json()
                 print("✅ Health endpoint responded successfully")
