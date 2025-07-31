@@ -19,7 +19,7 @@ async def register_user(db, email: str, name: str, role: str, file: UploadFile =
     :param db: The vector db collection handle to which the image embedding with email id as key will be upserted
     :param email: The email id of the user being registered, this is assumed to be unique per user record
     :param name: The user name (different from email) for display
-    :param role: The role associated with the user, it can only be student or teacher
+    :param role: The role associated with the user, can be Analyst-Gaming, Analyst-Non-Gaming, Leadership-Gaming, or Leadership-Non-Gaming
     :param file: The facial image of the user being registered, the first recognized face image would be used.
 
     :return: email 
@@ -148,8 +148,14 @@ def remove_all_faces(client, user_faces_collection="user_faces_db"):
             except Exception as e:
                 print(f"Error deleting collection for user {user_id}: {e}")
         
-        # Finally, delete the user_faces_db collection itself
-        client.delete_collection(user_faces_collection)
+        # Instead of deleting the collection, just clear all documents from it
+        # This preserves the collection reference while removing all data
+        if all_user_ids:
+            collection.delete(ids=all_user_ids)
+            print(f"Cleared {len(all_user_ids)} face records from collection (collection preserved)")
+        else:
+            print("No face records found to clear")
+        
         return True
     except Exception as e:
         print(f"Error in remove_all_faces: {e}")

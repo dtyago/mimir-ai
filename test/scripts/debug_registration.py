@@ -85,7 +85,7 @@ async def debug_registration():
                 db=user_faces_db,
                 email="debug@test.com",
                 name="Debug User", 
-                role="student",
+                role="Analyst-Gaming",
                 file=mock_file
             )
             print(f"   ✅ Registration successful: {result['status']}")

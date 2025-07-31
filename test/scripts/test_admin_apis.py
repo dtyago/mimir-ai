@@ -117,7 +117,7 @@ def test_admin_apis(base_url="http://localhost:8000"):
         test_user_data = {
             'name': 'Test User 123',
             'email': 'testuser123@example.com',
-            'role': 'student'  # Must be 'student' or 'teacher'
+            'role': 'Analyst-Gaming'  # Must be one of the 4 available roles
         }
         
         # Create test image using real test file
