@@ -1,40 +1,43 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Mimir User Registration</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/static/css/mvp.css" rel="stylesheet" media="screen">
 </head>
+
 <body>
-    <div class=""container">
-    <h2>User Registration</h2>
-    <form action="/admin/register_user" method="post" enctype="multipart/form-data">
-        <label for="email">User ID (Email):</label>
-        <input type="email" id="email" name="email" required><br>
+    <div class="" container">
+        <h2>User Registration</h2>
+        <form action="/admin/register_user" method="post" enctype="multipart/form-data">
+            <label for="email">User ID (Email):</label>
+            <input type="email" id="email" name="email" required><br>
 
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>
 
-        <label for="role">Role:</label>
-        <select id="role" name="role">
-            <option value="Analyst-Gaming">Analyst-Gaming</option>
-            <option value="Analyst-Non-Gaming">Analyst-Non-Gaming</option>
-            <option value="Leadership-Gaming">Leadership-Gaming</option>
-            <option value="Leadership-Non-Gaming">Leadership-Non-Gaming</option>
-        </select><br>
+            <label for="role">Role:</label>
+            <select id="role" name="role">
+                <option value="Analyst-Gaming">Analyst-Gaming</option>
+                <option value="Analyst-Non-Gaming">Analyst-Non-Gaming</option>
+                <option value="Leadership-Gaming">Leadership-Gaming</option>
+                <option value="Leadership-Non-Gaming">Leadership-Non-Gaming</option>
+            </select><br>
 
-        <label for="file">Profile Picture (.jpg):</label>
-        <input type="file" id="file" name="file" accept=".jpg" required><br>
+            <label for="file">Profile Picture (.jpg):</label>
+            <input type="file" id="file" name="file" accept=".jpg" required><br>
 
-        <button type="submit" class="btn btn-default" >Register</button>
-    </form>
-    {% if error %}
+            <button type="submit" class="btn btn-default">Register</button>
+        </form>
+        {% if error %}
         <p class="error"><strong>Error:</strong> {{ error }}
-    {% endif %}
+            {% endif %}
     </div>
     <hr>
     <div>
-       <a href="/admin/data_management">Data Management</a>
+        <a href="/admin/data_management">Data Management</a>
     </div>
 </body>
+
 </html>

@@ -196,8 +196,10 @@ async def delete_faces(request: Request):
 
 # Import API routers and register them
 from .api import userlogin, userlogout, userchat, userupload
+from .admin import rag_admin
 
 app.include_router(userlogin.router)
 app.include_router(userlogout.router)
 app.include_router(userchat.router)
 app.include_router(userupload.router)
+app.include_router(rag_admin.router)

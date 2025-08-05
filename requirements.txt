@@ -19,6 +19,7 @@ azure-keyvault-secrets>=4.7.0     # Azure Key Vault integration for secure secre
 # Database and data storage
 chromadb==0.6.3                   # Vector database for embeddings (pinned for SQLite compatibility)
 tinydb>=4.8.0                     # Lightweight JSON database for token storage
+pandas>=1.5.0                     # Data manipulation and analysis for data mart
 
 # Computer vision and ML libraries
 numpy>=1.24.0,<2.0.0              # NumPy with version constraint for stability
@@ -37,6 +38,7 @@ openai>=1.0.0                     # Azure OpenAI client library
 
 # Document processing
 pypdf>=4.0.0                      # PDF document processing
+reportlab>=4.0.0                  # PDF generation for testing
 
 # Web interface and templates
 jinja2>=3.1.0                     # Template engine for admin interface
