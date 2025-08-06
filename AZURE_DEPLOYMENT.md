@@ -44,12 +44,49 @@ AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 AZURE_OPENAI_API_KEY=your-api-key
 AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
 
+## Role Configuration (Environment-Specific)
+MIMIR_ROLES=doctor,nurse,administrator,patient  # Configure for your domain
+DEFAULT_ROLE=human
+L2_FACE_THRESHOLD=0.6  # Face recognition threshold (lower = stricter)
+
 ## Security Configuration
 EC_ADMIN_PWD=your-bcrypt-hashed-password
 JWT_SECRET_KEY=your-jwt-secret
 ```
 
-### Step 2: Generate Security Credentials
+### Step 2: Configure Roles for Your Domain
+
+Mimir AI is a generic framework that adapts to any domain through role configuration:
+
+```bash
+# Healthcare Environment
+MIMIR_ROLES=doctor,nurse,administrator,patient
+DEFAULT_ROLE=human
+
+# Education Environment
+MIMIR_ROLES=teacher,student,administrator,parent
+DEFAULT_ROLE=human
+
+# Gaming/Analytics Environment
+MIMIR_ROLES=analyst-gaming,analyst-non-gaming,leadership-gaming,leadership-non-gaming
+DEFAULT_ROLE=human
+
+# Corporate Environment
+MIMIR_ROLES=employee,manager,executive,contractor
+DEFAULT_ROLE=human
+
+# Simple Environment
+MIMIR_ROLES=human
+DEFAULT_ROLE=human
+```
+
+**Role Configuration Benefits:**
+- **Environment-Specific**: Same codebase works for any domain
+- **Role-Based AI**: AI responses adapt to user roles and permissions
+- **Access Control**: Different data sources available per role
+- **Unlimited Roles**: Configure as many roles as needed
+
+### Step 3: Generate Security Credentials
 
 Generate a secure admin password hash:
 ```bash

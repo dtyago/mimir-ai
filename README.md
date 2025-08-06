@@ -10,12 +10,23 @@ Mimir AI is a modern FastAPI-based conversational platform that combines AI-powe
 - **Biometric Login**: Secure authentication using facial recognition instead of passwords
 - **FaceNet + MTCNN**: Advanced face detection and embedding generation
 - **JWT Security**: Secure session management with token-based authentication
+- **Multi-Role Support**: Environment-configurable user roles for any domain
 
-### 🤖 AI-Powered Chat with RAG
+### 🤖 Enhanced AI-Powered Chat with Multi-Source RAG
 - **Azure OpenAI GPT-4o**: Enterprise-grade conversational AI
+- **Enhanced RAG System**: Multi-source data integration for intelligent responses
+- **Role-Specific Context**: Personalized AI responses based on user roles and permissions
 - **Document-Aware Responses**: AI answers questions based on uploaded documents
 - **User-Specific Context**: Personalized document collections per user
 - **Vector Search**: Intelligent semantic search through document content
+- **Data Source Integration**: Common knowledge, data marts, and role-specific collections
+
+### 🎯 Generic Framework Architecture
+- **Environment-Driven Configuration**: Deploy in any domain via .env settings
+- **Dynamic Role Management**: Configure unlimited roles through MIMIR_ROLES variable
+- **Domain-Agnostic Design**: Healthcare, education, gaming, corporate, or custom domains
+- **Scalable Test Framework**: Test suites automatically adapt to configured roles
+- **Flexible Deployment**: Same codebase works across different use cases
 
 ### 📚 Document Processing
 - **PDF Upload & Processing**: Automatic document ingestion and vectorization
@@ -151,6 +162,35 @@ docker-compose up --build
 | `EC_ADMIN_PWD` | Hashed admin password | Generate with bcrypt |
 | `JWT_SECRET_KEY` | JWT signing secret | Generate with `secrets.token_urlsafe(32)` |
 | `CHROMADB_LOC` | Vector database path | `./data/chromadb` |
+| `MIMIR_ROLES` | Comma-separated user roles | `doctor,nurse,admin` or `analyst,leadership` |
+| `DEFAULT_ROLE` | Default role for users | `human` |
+| `L2_FACE_THRESHOLD` | Face recognition threshold | `0.6` (lower = stricter) |
+
+### Role Configuration Examples
+
+The framework adapts to any domain through environment configuration:
+
+```bash
+# Healthcare Environment
+MIMIR_ROLES=doctor,nurse,administrator,patient
+DEFAULT_ROLE=human
+
+# Education Environment  
+MIMIR_ROLES=teacher,student,administrator,parent
+DEFAULT_ROLE=human
+
+# Gaming/Analytics Environment
+MIMIR_ROLES=analyst-gaming,analyst-non-gaming,leadership-gaming,leadership-non-gaming
+DEFAULT_ROLE=human
+
+# Corporate Environment
+MIMIR_ROLES=employee,manager,executive,contractor
+DEFAULT_ROLE=human
+
+# Simple/Generic Environment
+MIMIR_ROLES=human
+DEFAULT_ROLE=human
+```
 
 ### Generate Secure Credentials
 ```bash
@@ -174,12 +214,16 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
   - **Output**: Logout confirmation
 
 #### AI Chat & Documents
-- `POST /user/chat` - Conversational AI with document context
-  - **Input**: User message + JWT token
-  - **Output**: AI response with document references
+- `POST /user/chat` - Enhanced conversational AI with multi-source document context
+  - **Input**: User message + JWT token + enhanced_rag flag
+  - **Output**: AI response with document references and data source information
+  - **Features**: Role-specific responses, multi-source data integration
 - `POST /user/upload` - PDF document upload and processing
   - **Input**: PDF file + JWT token
   - **Output**: Upload confirmation and processing status
+- `POST /user/chat/data-sources` - Get available data sources for user role
+  - **Input**: JWT token
+  - **Output**: List of enabled data sources for the user's role
 
 #### Admin Interface
 - `GET /` - Admin login page
@@ -200,12 +244,23 @@ curl -X POST "http://localhost:8000/user/login" \
   -F "file=@user_face.jpg"
 ```
 
-#### AI Chat
+#### Enhanced AI Chat
 ```bash
+# Traditional RAG
 curl -X POST "http://localhost:8000/user/chat" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"user_input": "Explain the key concepts from my uploaded documents"}'
+  -d '{"user_input": "Explain the key concepts from my uploaded documents", "use_enhanced_rag": false}'
+
+# Enhanced RAG with multi-source integration
+curl -X POST "http://localhost:8000/user/chat" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"user_input": "What analytics best practices should I follow?", "use_enhanced_rag": true}'
+
+# Check available data sources for role
+curl -X POST "http://localhost:8000/user/chat/data-sources" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 #### Document Upload
@@ -310,24 +365,53 @@ docker build -f Dockerfile -t mimir-ai-dev .
 - **Admin Access Control**: Separate administrative authentication
 - **Secure File Handling**: Safe upload and processing pipelines
 
+## 🎯 Framework Capabilities
+
+### Generic Multi-Domain Framework
+Mimir AI is designed as a **domain-agnostic framework** that can be deployed in any environment through simple configuration:
+
+- **Healthcare**: `doctor,nurse,administrator,patient`
+- **Education**: `teacher,student,administrator,parent`  
+- **Gaming/Analytics**: `analyst-gaming,analyst-non-gaming,leadership-gaming,leadership-non-gaming`
+- **Corporate**: `employee,manager,executive,contractor`
+- **Generic**: `human` (default single-role deployment)
+
+### Role-Based Intelligence
+- **Dynamic Role Configuration**: Unlimited roles via `MIMIR_ROLES` environment variable
+- **Role-Specific AI Responses**: AI adapts responses based on user's role and permissions
+- **Access Control**: Role-based access to different data sources and knowledge bases
+- **Test Framework Scalability**: Test suites automatically adapt to configured roles
+
+### Enhanced RAG Architecture
+- **Multi-Source Integration**: Common knowledge, data marts, role-specific collections
+- **Conversation History**: Maintains context across chat sessions
+- **User Documents**: Personal document collections per user
+- **Data Source Transparency**: Shows which sources contributed to each response
+
 ## 🧪 Testing
 
-The application includes comprehensive testing capabilities:
+The application includes comprehensive testing capabilities that adapt to your environment:
 
 ```bash
 # Health check
 curl http://localhost:8000/health
 
-# Test facial recognition
-python -c "from app.utils.mm_image_utils import detect_faces_with_mtcnn; print('Face detection ready')"
+# Test all configured roles (adapts to MIMIR_ROLES)
+python test/scripts/test_all_roles.py
 
-# Test Azure OpenAI connection
-python -c "
-import os
-from app.utils.chat_rag import test_azure_openai
-test_azure_openai()
-"
+# Test enhanced RAG system
+python test/scripts/test_enhanced_rag.py
+
+# Test comprehensive APIs
+python test/scripts/test_comprehensive_apis.py
 ```
+
+### Test Framework Features
+- **Environment-Driven Testing**: Test suites read roles from your .env configuration
+- **Dynamic Test Generation**: Number of tests scales with configured roles
+- **Role-Specific Validation**: Verifies role isolation and permissions
+- **Enhanced RAG Testing**: Validates multi-source data integration
+- **100% Pass Rate**: All tests designed to work with any role configuration
 
 ## 🛠️ Development Tools
 
