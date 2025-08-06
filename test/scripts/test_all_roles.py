@@ -1,46 +1,89 @@
 #!/usr/bin/env python3
 """
-Test script to verify all 4 new roles work correctly
+Test script to verify all configured roles work correctly
 """
 
+import os
 import requests
 from io import BytesIO
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+
+def get_configured_roles():
+    """Get roles from environment configuration"""
+    roles_env = os.getenv("MIMIR_ROLES", "human")
+    default_role = os.getenv("DEFAULT_ROLE", "human")
+
+    # Parse comma-separated roles
+    roles = [role.strip() for role in roles_env.split(",") if role.strip()]
+
+    # Ensure default role is included if not already present
+    if default_role not in roles:
+        roles.append(default_role)
+
+    return roles
+
+
+def get_image_path_for_role(role):
+    """Generate image path for a given role"""
+    # Convert role to safe filename (replace special characters)
+    safe_role = role.lower().replace("-", "_").replace(" ", "_")
+
+    # Try different extensions
+    for ext in [".jpg", ".jpeg", ".png"]:
+        image_path = f"./test/data/{safe_role}{ext}"
+        if os.path.exists(image_path):
+            return image_path
+
+    # Fallback to default image
+    for ext in [".jpg", ".jpeg", ".png"]:
+        default_path = f"./test/data/default{ext}"
+        if os.path.exists(default_path):
+            return default_path
+
+    # Final fallback to login-test.jpg for backward compatibility
+    return "./test/data/login-test.jpg"
 
 
 def load_test_image(role=None):
     """Load the appropriate test image for facial recognition based on role"""
-    # Map roles to their corresponding image files
-    role_image_map = {
-        "Analyst-Gaming": "./test/data/analyst-gaming.jpg",
-        "Analyst-Non-Gaming": "./test/data/analyst-non-gaming.jpeg",
-        "Leadership-Gaming": "./test/data/leadership-gaming.jpeg",
-        "Leadership-Non-Gaming": "./test/data/leadership-non-gaming.jpeg",
-    }
-
-    # Use role-specific image if role is provided, otherwise use default
-    image_path = role_image_map.get(role, "./test/data/login-test.jpg")
+    if role is None:
+        image_path = "./test/data/default.jpg"
+    else:
+        image_path = get_image_path_for_role(role)
 
     try:
         with open(image_path, "rb") as f:
             return BytesIO(f.read())
     except FileNotFoundError:
-        print(f"⚠️  Image not found: {image_path}, using default")
-        with open("./test/data/login-test.jpg", "rb") as f:
-            return BytesIO(f.read())
+        # Try fallback options
+        fallback_paths = ["./test/data/default.jpg", "./test/data/login-test.jpg"]
+        for fallback in fallback_paths:
+            try:
+                with open(fallback, "rb") as f:
+                    print(
+                        f"⚠️  Image not found: {image_path}, using fallback: {fallback}"
+                    )
+                    return BytesIO(f.read())
+            except FileNotFoundError:
+                continue
+
+        raise FileNotFoundError(
+            f"No test images found. Please add test images to ./test/data/"
+        )
 
 
 def test_role_registration(base_url="http://localhost:8000"):
     """Test registration with different roles"""
 
-    roles_to_test = [
-        "Analyst-Gaming",
-        "Analyst-Non-Gaming",
-        "Leadership-Gaming",
-        "Leadership-Non-Gaming",
-    ]
+    roles_to_test = get_configured_roles()
 
-    print("🧪 Testing All 4 New Roles")
+    print(f"🧪 Testing All {len(roles_to_test)} Configured Roles")
     print("=" * 50)
+    print(f"📋 Roles from environment: {', '.join(roles_to_test)}")
 
     for i, role in enumerate(roles_to_test, 1):
         print(f"\n{i}️⃣ Testing Role: {role}")
@@ -48,13 +91,8 @@ def test_role_registration(base_url="http://localhost:8000"):
         try:
             test_image = load_test_image(role)
             # Get the appropriate image filename based on role
-            role_image_filenames = {
-                "Analyst-Gaming": "analyst-gaming.jpg",
-                "Analyst-Non-Gaming": "analyst-non-gaming.jpeg",
-                "Leadership-Gaming": "leadership-gaming.jpeg",
-                "Leadership-Non-Gaming": "leadership-non-gaming.jpeg",
-            }
-            image_filename = role_image_filenames.get(role, "login-test.jpg")
+            image_path = get_image_path_for_role(role)
+            image_filename = os.path.basename(image_path)
 
             files = {
                 "email": (None, f"test_role_{i}@example.com"),

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Econnect Data Management</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,31 +8,44 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
+
 <body>
-    <h1>Face DB</h1>
-    <div>
-        <p>Total Faces: {{ faces.face_count }}</p>
-        <h2>Registered faces:</h2>
-        <p>{{ faces.all_faces }}</p>
-        <hr>
-        <h2>All collections:</h2>
-        <p>{{ faces.all_collections }}</p>
-    </div>
-    <hr>
+    <!-- Navigation -->
+    <nav class="navbar navbar-light bg-light mb-3">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">Data Management</span>
+            <a href="/admin/register_user" class="btn btn-primary">← Back to User Registration</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <h2>User Registration</h2>
-        <form id="deleteForm" action="/admin/delete_faces" method="post" enctype="multipart/form-data">
-            <h2>Delete and clean vectordb:</h2>
-            <!-- Updated button to only trigger the modal -->
-            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#confirmationModal">Delete ALL</button>
-        </form>
-        {% if error %}
+        <h1>Face DB</h1>
+        <div>
+            <p>Total Faces: {{ faces.face_count }}</p>
+            <h2>Registered faces:</h2>
+            <p>{{ faces.all_faces }}</p>
+            <hr>
+            <h2>All collections:</h2>
+            <p>{{ faces.all_collections }}</p>
+        </div>
+        <hr>
+        <div>
+            <h2>User Registration</h2>
+            <form id="deleteForm" action="/admin/delete_faces" method="post" enctype="multipart/form-data">
+                <h2>Delete and clean vectordb:</h2>
+                <!-- Updated button to only trigger the modal -->
+                <button type="button" class="btn btn-default" data-toggle="modal"
+                    data-target="#confirmationModal">Delete ALL</button>
+            </form>
+            {% if error %}
             <p class="error"><strong>Error:</strong> {{ error }}</p>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -57,10 +71,11 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            document.getElementById('confirmDelete').addEventListener('click', function() {
+            document.getElementById('confirmDelete').addEventListener('click', function () {
                 document.getElementById('deleteForm').submit();
             });
         });
     </script>
 </body>
+
 </html>
