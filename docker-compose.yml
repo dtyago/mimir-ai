@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  mimir-api:
+  mimir-ai:
     build: .
     ports:
       - "8000:8000"
@@ -35,7 +35,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
     depends_on:
-      - mimir-api
+      - mimir-ai
     restart: unless-stopped
     profiles:
       - production

@@ -62,10 +62,10 @@ fi
 
 # Configuration - These can be overridden by .env.azure
 RESOURCE_GROUP="${RESOURCE_GROUP:-dtyago-rg}"  # Default or from .env.azure
-APP_NAME="${APP_NAME:-mimir-api-prod}"
+APP_NAME="${APP_NAME:-mimir-ai-prod}"
 LOCATION="${LOCATION:-Canada Central}"  # Default or from .env.azure
 ACR_NAME="${ACR_NAME:-}"  # Will be auto-detected or from .env.azure
-IMAGE_NAME="mimir-api"
+IMAGE_NAME="mimir-ai"
 TAG="latest"
 
 echo "🚀 Deploying Mimir API container to Azure App Service"
@@ -277,7 +277,7 @@ az webapp config appsettings set \
     UPLOAD_DIR="${UPLOAD_DIR:-/tmp/uploads}" \
     FACE_TEMP_DIR="${FACE_TEMP_DIR:-/tmp/face_images}" \
     LOG_LEVEL="${LOG_LEVEL:-INFO}" \
-    LOG_FILE="${LOG_FILE:-/tmp/logs/mimir-api.log}" \
+    LOG_FILE="${LOG_FILE:-/tmp/logs/mimir-ai.log}" \
     SCM_DO_BUILD_DURING_DEPLOYMENT="${SCM_DO_BUILD_DURING_DEPLOYMENT:-true}" \
     PYTHONPATH="${PYTHONPATH:-/home/site/wwwroot}" \
     PORT="${PORT:-8000}" \

@@ -50,25 +50,25 @@ test/
 
 ### Run All Environment Tests
 ```bash
-cd /workspaces/mimir-api
+cd /workspaces/mimir-ai
 python3 test/scripts/test_devcontainer.py
 ```
 
 ### Run API Tests
 ```bash
-cd /workspaces/mimir-api
+cd /workspaces/mimir-ai
 python3 test/scripts/test_admin_apis.py
 ```
 
 ### Debug Registration Issues
 ```bash
-cd /workspaces/mimir-api
+cd /workspaces/mimir-ai
 python3 test/scripts/debug_registration.py
 ```
 
 ### Verify Post-Rebuild Setup
 ```bash
-cd /workspaces/mimir-api
+cd /workspaces/mimir-ai
 python3 test/scripts/post_rebuild_check.py
 ```
 

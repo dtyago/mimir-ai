@@ -6,7 +6,7 @@ echo "🔥 Starting local development server with hot reload..."
 
 # Check if we're in the right directory
 if [ ! -f "startup.py" ]; then
-    echo "❌ Please run this from the mimir-api root directory"
+    echo "❌ Please run this from the mimir-ai root directory"
     exit 1
 fi
 
@@ -15,7 +15,7 @@ mkdir -p data/chromadb data/uploads data/tmp data/logs
 
 # Set environment variables for development
 export ENVIRONMENT=development
-export PYTHONPATH=/workspaces/mimir-api
+export PYTHONPATH=/workspaces/mimir-ai
 export CHROMADB_ALLOW_RESET=true
 
 # Install development dependencies if needed

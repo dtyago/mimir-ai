@@ -9,7 +9,7 @@ set -e
 
 # Configuration
 RESOURCE_GROUP="dtyago-rg"
-APP_NAME="mimir-api-prod"
+APP_NAME="mimir-ai-prod"
 ACR_NAME="dc8f1b7ee44d46cc8329c8e71b4c2054"
 
 ACTION=${1:-"rebuild"}
@@ -48,12 +48,12 @@ if [ "$ACTION" = "restart" ]; then
 elif [ "$ACTION" = "rebuild" ]; then
     echo "📦 Building and pushing image to Azure Container Registry..."
     echo "   Registry: $ACR_NAME"
-    echo "   Image: mimir-api:latest"
+    echo "   Image: mimir-ai:latest"
     echo "   This will use Docker layer caching to speed up builds"
     echo ""
 
     # Build and push using Azure Container Registry build service with caching
-    az acr build --registry $ACR_NAME --image mimir-api:latest . --platform linux --file Dockerfile.azure
+    az acr build --registry $ACR_NAME --image mimir-ai:latest . --platform linux --file Dockerfile.azure
 
     if [ $? -eq 0 ]; then
         echo "✅ Image built and pushed successfully"

@@ -13,7 +13,7 @@ if [ -n "$CODESPACES" ]; then
     exit 1
 elif [ -n "$DEVCONTAINER" ] || [ -f "/.devcontainer-indicator" ]; then
     DETECTED_ENV="devcontainer"
-elif [ "$(whoami)" = "vscode" ] && [ -f "/.dockerenv" ] && [ "$(pwd)" = "/workspaces/mimir-api" ]; then
+elif [ "$(whoami)" = "vscode" ] && [ -f "/.dockerenv" ] && [ "$(pwd)" = "/workspaces/mimir-ai" ]; then
     echo "❌ ERROR: Wrong DevContainer detected!"
     echo "   You're running in a generic VS Code container, not the project's custom container."
     echo "   This container has SQLite $(python3 -c 'import sqlite3; print(sqlite3.sqlite_version)') but ChromaDB requires 3.35.0+"
@@ -135,7 +135,7 @@ esac
 export CHROMADB_LOC="${CHROMADB_LOC:-$DATA_DIR/chromadb}"
 export USER_DATA_DIR="${USER_DATA_DIR:-$DATA_DIR}"
 export UPLOAD_DIR="${UPLOAD_DIR:-$DATA_DIR/uploads}"
-export LOG_FILE="${LOG_FILE:-$DATA_DIR/logs/mimir-api.log}"
+export LOG_FILE="${LOG_FILE:-$DATA_DIR/logs/mimir-ai.log}"
 export PORT=${PORT:-8000}
 
 # Create necessary directories

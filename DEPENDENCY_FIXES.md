@@ -110,8 +110,8 @@ The project now uses a single universal startup script that automatically detect
 #### Production Deployment
 1. **Docker:** 
    ```bash
-   docker build -t mimir-api .
-   docker run -p 8000:8000 mimir-api
+   docker build -t mimir-ai .
+   docker run -p 8000:8000 mimir-ai
    ```
 
 2. **Direct Production:**

@@ -1,8 +1,8 @@
-# Mimir API
+# Mimir AI
 
 ## Overview
 
-Mimir API is a modern FastAPI-based conversational platform that combines AI-powered chat capabilities with facial recognition authentication. The system enables secure, biometric user authentication and intelligent document-based conversations powered by Azure OpenAI and Retrieval-Augmented Generation (RAG).
+Mimir AI is a modern FastAPI-based conversational platform that combines AI-powered chat capabilities with facial recognition authentication. The system enables secure, biometric user authentication and intelligent document-based conversations powered by Azure OpenAI and Retrieval-Augmented Generation (RAG).
 
 ## ✨ Key Features
 
@@ -49,7 +49,7 @@ Mimir API is a modern FastAPI-based conversational platform that combines AI-pow
 ## 📁 Project Structure
 
 ```
-mimir-api/
+mimir-ai/
 ├── app/                            # Application source code
 │   ├── main.py                     # FastAPI main application entry
 │   ├── dependencies.py             # Dependency injection and configuration
@@ -100,8 +100,8 @@ mimir-api/
 Perfect for VS Code users with consistent development environment:
 
 ```bash
-git clone https://github.com/dtyago/mimir-api.git
-cd mimir-api
+git clone https://github.com/dtyago/mimir-ai.git
+cd mimir-ai
 code .
 # VS Code will prompt to "Reopen in Container" - click it
 # Wait for container build, then:
@@ -112,8 +112,8 @@ code .
 For direct local development:
 
 ```bash
-git clone https://github.com/dtyago/mimir-api.git
-cd mimir-api
+git clone https://github.com/dtyago/mimir-ai.git
+cd mimir-ai
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -125,8 +125,8 @@ cp .env.example .env      # Configure your Azure OpenAI credentials
 For containerized local development:
 
 ```bash
-git clone https://github.com/dtyago/mimir-api.git
-cd mimir-api
+git clone https://github.com/dtyago/mimir-ai.git
+cd mimir-ai
 docker-compose up --build
 ```
 
@@ -223,8 +223,8 @@ For enterprise-grade production deployment with automatic scaling:
 
 ```bash
 # Clone and configure
-git clone https://github.com/dtyago/mimir-api.git
-cd mimir-api
+git clone https://github.com/dtyago/mimir-ai.git
+cd mimir-ai
 
 # Configure Azure credentials
 az login
@@ -288,16 +288,16 @@ For self-hosted production deployment:
 
 ```bash
 # Production Docker build (Azure-optimized)
-docker build -f Dockerfile.azure -t mimir-api-prod .
+docker build -f Dockerfile.azure -t mimir-ai-prod .
 docker run -d \
-  --name mimir-api \
+  --name mimir-ai \
   -p 8000:8000 \
   --env-file .env.production \
   --restart unless-stopped \
-  mimir-api-prod
+  mimir-ai-prod
 
 # Development Docker build (DevContainer)
-docker build -f Dockerfile -t mimir-api-dev .
+docker build -f Dockerfile -t mimir-ai-dev .
 ```
 
 ## 🔒 Security Features

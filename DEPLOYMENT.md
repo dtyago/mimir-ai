@@ -112,7 +112,7 @@ If you prefer manual control:
 1. **Build and Push Image:**
    ```bash
    # Using Azure Container Registry build service (no local Docker needed)
-   az acr build --registry your-acr-name --image mimir-api:latest .
+   az acr build --registry your-acr-name --image mimir-ai:latest .
    ```
 
 2. **Update App Service:**
@@ -120,7 +120,7 @@ If you prefer manual control:
    az webapp config container set \
      --name your-app-name \
      --resource-group your-rg \
-     --container-image-name your-acr.azurecr.io/mimir-api:latest
+     --container-image-name your-acr.azurecr.io/mimir-ai:latest
    ```
 
 3. **Configure Environment Variables:**
@@ -139,7 +139,7 @@ The Azure Container Registry build service allows you to build and deploy withou
 
 ```bash
 # This works from VS Code DevContainer
-az acr build --registry your-acr-name --image mimir-api:latest .
+az acr build --registry your-acr-name --image mimir-ai:latest .
 ```
 # Docker Compose deployment
 docker-compose up --build
@@ -160,7 +160,7 @@ ENVIRONMENT=development ./start.sh
 ENVIRONMENT=production ./start.sh
 
 # Or with Docker
-docker run -p 8000:8000 --env-file .env mimir-api
+docker run -p 8000:8000 --env-file .env mimir-ai
 ```
 
 #### Option 4: Manual Development Start
@@ -201,7 +201,7 @@ All configuration is managed through the `.env` file:
 
 ### Directory Structure
 ```
-/workspaces/mimir-api/
+/workspaces/mimir-ai/
 ├── data/
 │   ├── chromadb/     # Vector database storage
 │   ├── uploads/      # Processed files
@@ -233,17 +233,17 @@ Response:
 ### Log Files
 - **Access Logs**: `data/logs/access.log`
 - **Error Logs**: `data/logs/error.log`
-- **Application Logs**: `data/logs/mimir-api.log`
+- **Application Logs**: `data/logs/mimir-ai.log`
 
 ## 🐳 Docker Deployment
 
 ### Build and Run
 ```bash
 # Build the image
-docker build -t mimir-api .
+docker build -t mimir-ai .
 
 # Run the container
-docker run -p 8000:8000 --env-file .env mimir-api
+docker run -p 8000:8000 --env-file .env mimir-ai
 ```
 
 ### Production with Docker Compose
@@ -252,7 +252,7 @@ docker run -p 8000:8000 --env-file .env mimir-api
 docker-compose up -d
 
 # Scale the API service
-docker-compose up --scale mimir-api=3 -d
+docker-compose up --scale mimir-ai=3 -d
 
 # View logs
 docker-compose logs -f

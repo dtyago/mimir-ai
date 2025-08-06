@@ -4,8 +4,8 @@
 echo "🔷 Azure App Service Configuration Helper"
 echo "========================================"
 
-WEB_APP_NAME="mimir-api-prod"
-RESOURCE_GROUP="rg-mimir-api"
+WEB_APP_NAME="mimir-ai-prod"
+RESOURCE_GROUP="rg-mimir-ai"
 
 # Function to show current configuration
 show_config() {
@@ -59,14 +59,14 @@ check_status() {
 # Function to scale the app
 scale_app() {
     echo "📊 Current App Service Plan:"
-    az appservice plan show --name plan-mimir-api --resource-group $RESOURCE_GROUP --query "{name:name,sku:sku}" --output table
+    az appservice plan show --name plan-mimir-ai --resource-group $RESOURCE_GROUP --query "{name:name,sku:sku}" --output table
     
     echo ""
     echo "Available SKUs: F1 (Free), B1 (Basic), S1 (Standard), P1v2 (Premium)"
     read -p "Enter new SKU (or press Enter to skip): " sku
     
     if [ ! -z "$sku" ]; then
-        az appservice plan update --name plan-mimir-api --resource-group $RESOURCE_GROUP --sku $sku --output table
+        az appservice plan update --name plan-mimir-ai --resource-group $RESOURCE_GROUP --sku $sku --output table
     fi
 }
 
