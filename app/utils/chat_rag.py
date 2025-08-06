@@ -98,43 +98,6 @@ def pdf_to_vec(filename, user_collection_name):
     #return collection  # Return the collection as the asset
 
 
-# Assuming AzureOpenAIModelSingleton is updated to support async instantiation
-class AzureOpenAIModelSingleton:
-    _instance = None
-
-    @classmethod
-    async def get_instance(cls):
-        if cls._instance is None:
-            cls._instance = cls._load_llm()  # Load Azure OpenAI model
-        return cls._instance
-
-    @staticmethod
-    def _load_llm():
-        print('Loading Azure OpenAI model...')
-        
-        # Get Azure OpenAI configuration from environment variables
-        azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
-        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o")
-        
-        if not azure_endpoint or not api_key:
-            raise ValueError("Azure OpenAI endpoint and API key must be set in environment variables")
-        
-        llm = AzureChatOpenAI(
-            azure_endpoint=azure_endpoint,
-            api_key=api_key,
-            api_version=api_version,
-            deployment_name=deployment_name,
-            temperature=0.1,
-            max_tokens=2000,
-        )
-        print(f'Azure OpenAI model loaded with deployment: {deployment_name}')
-        return llm
-
-async def load_llm():
-    return await AzureOpenAIModelSingleton.get_instance()
-
 class AzureOpenAIModelSingleton:
     _instance = None
     _metadata = None  # Store metadata alongside the instance for easy access
@@ -181,6 +144,11 @@ class AzureOpenAIModelSingleton:
         except Exception as e:
             logging.error(f'Failed to load Azure OpenAI model: {e}')
             raise
+
+async def load_llm():
+    """Load just the LLM instance (without metadata)"""
+    llm, _ = await AzureOpenAIModelSingleton.get_instance()
+    return llm
 
 class EnhancedConversationalChain:
     _instance = None
