@@ -1,18 +1,32 @@
 {
-	"name": "Mimir API Development Container",
-	// Use the Dockerfile in the project root
+	"name": "Mimir AI Development Container",
+	// Use the Dockerfile in t	// Environment variables for development
+	"remoteEnv": {
+		"ENVIRONMENT": "devcontainer",
+		"APP_ENV": "development",
+		"APP_HOST": "0.0.0.0",
+		"APP_PORT": "8000",
+		"DEBUG": "true",
+		"AUTO_RELOAD": "true",
+		"PYTHONPATH": "/workspaces/mimir-ai",
+		"CHROMADB_LOC": "/workspaces/mimir-ai/data/chromadb",
+		"USER_DATA_DIR": "/workspaces/mimir-ai/data",
+		"UPLOAD_DIR": "/workspaces/mimir-ai/data/uploads",
+		"TEMP_UPLOAD_DIR": "/workspaces/mimir-ai/data/tmp",
+		"FACE_TEMP_DIR": "/workspaces/mimir-ai/data/face_images",
+		"LOG_FILE": "/workspaces/mimir-ai/data/logs/mimir-ai.log",
 	"dockerFile": "../Dockerfile",
 	"context": "..",
 	// Dev container configuration
 	"remoteUser": "mimir",
-	"workspaceFolder": "/workspaces/mimir-api",
+	"workspaceFolder": "/workspaces/mimir-ai",
 	// Mounts for persistent data with proper ownership
 	"mounts": [
-		"source=mimir-chromadb-data,target=/workspaces/mimir-api/data/chromadb,type=volume",
-		"source=mimir-logs-data,target=/workspaces/mimir-api/data/logs,type=volume",
-		"source=mimir-uploads-data,target=/workspaces/mimir-api/data/uploads,type=volume",
-		"source=mimir-tmp-data,target=/workspaces/mimir-api/data/tmp,type=volume",
-		"source=mimir-face-images-data,target=/workspaces/mimir-api/data/face_images,type=volume"
+		"source=mimir-chromadb-data,target=/workspaces/mimir-ai/data/chromadb,type=volume",
+		"source=mimir-logs-data,target=/workspaces/mimir-ai/data/logs,type=volume",
+		"source=mimir-uploads-data,target=/workspaces/mimir-ai/data/uploads,type=volume",
+		"source=mimir-tmp-data,target=/workspaces/mimir-ai/data/tmp,type=volume",
+		"source=mimir-face-images-data,target=/workspaces/mimir-ai/data/face_images,type=volume"
 	],
 	// Features to add to the dev container
 	"features": {
@@ -34,12 +48,12 @@
 	],
 	"portsAttributes": {
 		"8000": {
-			"label": "Mimir API",
+			"label": "Mimir AI",
 			"onAutoForward": "notify"
 		}
 	},
 	// Commands to run after container creation
-	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y jq && sudo chown -R mimir:mimir /workspaces/mimir-api/data && chmod -R 755 /workspaces/mimir-api/data && echo 'Development container ready! Configure your .env file and run: ./start.sh'",
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y jq && sudo chown -R mimir:mimir /workspaces/mimir-ai/data && chmod -R 755 /workspaces/mimir-ai/data && echo 'Development container ready! Configure your .env file and run: ./start.sh'",
 	// VS Code customizations
 	"customizations": {
 		"vscode": {
